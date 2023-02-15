@@ -7,11 +7,6 @@ import numpy as np
 def colormap(name, colors, num):
     return clr.LinearSegmentedColormap.from_list(name, colors, num)
 
-    #cmGray = clr.LinearSegmentedColormap.from_list('gray', [(0, 0, 0), (1, 1, 1)], 256)
-    #cmRed = clr.LinearSegmentedColormap.from_list('red', [(0, 0, 0), (1, 0, 0)], 256)
-    #cmGreen = clr.LinearSegmentedColormap.from_list('green', [(0, 0, 0), (0, 1, 0)], 256)
-    #cmBlue = clr.LinearSegmentedColormap.from_list('blue', [(0, 0, 0), (0, 0, 1)], 256)
-
 #3.4
 def read_image(image):
     img = plt.imread(image)
@@ -20,6 +15,8 @@ def read_image(image):
     B = img[:, :, 2]
     
     return R, G, B, img
+
+
 #3.4
 def read_image_inv(R, G, B):
     imgRec = np.zeros((R.shape[0], R.shape[1], 3), dtype='uint8')
@@ -29,11 +26,13 @@ def read_image_inv(R, G, B):
     imgRec[:, :, 2] = B
     return imgRec
 
+
 #3.3
-def show_image(img, cmap, fig):
+def show_image(img,  title, fig, cmap=None):
     plt.figure(fig)
-    plt.axis('off'), plt.title("peppers"), plt.imshow(img)
+    plt.axis('off'), plt.title(title), plt.imshow(img)
     plt.imshow(img, cmap)
+
 
 #4
 def padding(image):
@@ -65,9 +64,12 @@ def padding(image):
     
     return image
 
+
 def padding_inv(l, c, imagem_pad):
     return imagem_pad[0:l, 0:c, :]
 
+
+#5
 def RGB_to_YCbCr(R, G, B):
     T = np.array([[0.299, 0.587, 0.114],
                   [-0.168736, -0.331264, 0.5],
@@ -92,10 +94,10 @@ def YCbCr_to_RGB(Y, Cb, Cr, T):
     #
     Rdecoded = Tinv[0, 0]*Y + Tinv[0, 1]*(Cb-128) + Tinv[0, 2]*(Cr - 128)
     #clamping
-    #Rdecoded[Rdecoded > 255] = 255
-    #Rdecoded[Rdecoded < 0] = 0
-    np.putmask(Rdecoded, Rdecoded > 255, 255)
-    np.putmask(Rdecoded, Rdecoded < 0, 0)
+    Rdecoded[Rdecoded > 255] = 255
+    Rdecoded[Rdecoded < 0] = 0
+    #np.putmask(Rdecoded, Rdecoded > 255, 255)
+    #np.putmask(Rdecoded, Rdecoded < 0, 0)
     
     #typecasting
     Rdecoded = np.round(Rdecoded).astype(np.uint8)
@@ -114,7 +116,7 @@ def YCbCr_to_RGB(Y, Cb, Cr, T):
     #typecasting
     Bdecoded = np.round(Bdecoded).astype(np.uint8)
 
-    Rgb = np.zeros((Y.shape[0], Y.shape[1], 3), dtype = 'uint8')
+    Rgb = np.zeros((Y.shape[0], Y.shape[1], 3), dtype='uint8')
     Rgb[:, :, 0] = Rdecoded
     Rgb[:, :, 1] = Gdecoded
     Rgb[:, :, 2] = Bdecoded
@@ -131,34 +133,44 @@ def encoder():
 
 # %%
 def main():
-    R, G, B, imagem = read_image("imagens/peppers.bmp")
+    R, G, B, imagem = read_image("imagens/barn_mountains.bmp")
     plt.figure(0),plt.axis('off'), plt.title("original"), plt.imshow(imagem)
-    show_image(R, colormap('red', [(0, 0, 0), (1, 0, 0)], 256), 1)
-    show_image(G, colormap('green', [(0, 0, 0), (0, 1, 0)], 256), 2)
-    show_image(B, colormap('blue', [(0, 0, 0), (0, 0, 1)], 256), 3)
+    show_image(imagem, "original peppers", 0)
+    show_image(R,"peppers R", 1, colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
+    show_image(G,"peppers G", 2, colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
+    show_image(B,"peppers B", 3, colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
     
     inverted = read_image_inv(R, G, B)
-    plt.figure(4),plt.axis('off'), plt.title("RGB reconstruido"), plt.imshow(inverted)
+    show_image(inverted, "RGB reconstruido", 4)
     #img_pad = padding(imagem)
     #img_pad_inv = padding_inv(imagem.shape[0], imagem.shape[1], img_pad)
-
+    
     img_ycbcr, T = RGB_to_YCbCr(R, G, B)
+    
+    cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
+    show_image(img_ycbcr[:, :, 0], "peppers Y", 5, cmgray)
+    show_image(img_ycbcr[:, :, 1], "peppers Cb", 6, cmgray)
+    show_image(img_ycbcr[:, :, 2], "peppers Cr", 7, cmgray)
+    
     img_rgb = YCbCr_to_RGB(img_ycbcr[:, :, 0], img_ycbcr[:, :, 1], img_ycbcr[:, :, 2], T)
-    plt.figure(6), plt.axis('off'), plt.title('YCbCr to RGB'), plt.imshow(img_rgb)
+    
+    show_image(img_rgb, "Rgb after YCbCr", 8)
 
 if __name__ == "__main__":
     main()
 
 
 # fazer 2 tabelas
-
-# Quality|peppers|barn  |logo
-#--------|-------|------|-----
-# max    |18,8:1 |
-# media  |28,4:1 |
-# min    |43,2:1 |      |66,56:1
+#ratio de compressão
+#_________________________________
+#| Quality|peppers| barn |logo   |
+#|--------|-------|------|-------|
+#| max    |18,8:1 |10,5:1|54,1:1 |
+#| media  |28,4:1 |16,1:1|43,7:1 |
+#| min    |43,2:1 |25,7:1|66,56:1|
+#---------------------------------
 
 
 # uma das tabelas com a apreciação subjetiva da qualidade(?)
-# outra com o ratio de compressão: ini_size/final_size
+
 # %%
