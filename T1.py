@@ -87,17 +87,6 @@ def RGB_to_YCbCr(R, G, B):
 
 def YCbCr_to_RGB(Y, Cb, Cr, T):
     Tinv = np.linalg.inv(T)
-<<<<<<< HEAD
-=======
-    #
-    Rdecoded = Tinv[0, 0]*Y + Tinv[0, 1]*(Cb-128) + Tinv[0, 2]*(Cr - 128)
-    #clamping
-
-    Rdecoded[Rdecoded > 255] = 255
-    Rdecoded[Rdecoded < 0] = 0
-    #np.putmask(Rdecoded, Rdecoded > 255, 255)
-    #np.putmask(Rdecoded, Rdecoded < 0, 0)
->>>>>>> 6e1fd721a4b19c6868eaf0cff884cfe02f178697
     
     Rdecoded = Tinv[0,0]*Y + Tinv[0, 1]*(Cb-128) + Tinv[0, 2]*(Cr - 128)
     #clamping
