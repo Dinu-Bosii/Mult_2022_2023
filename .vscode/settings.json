@@ -7,5 +7,5 @@
     ],
     "pylint.path": [
         "\"--max-line-length=120\""
-    ],
+    ]
 }
