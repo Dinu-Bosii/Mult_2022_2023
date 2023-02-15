@@ -20,10 +20,10 @@ def read_image(image):
 #3.4
 def read_image_inv(R, G, B):
     imgRec = np.zeros((R.shape[0], R.shape[1], 3), dtype='uint8')
-
     imgRec[:, :, 0] = R
     imgRec[:, :, 1] = G
     imgRec[:, :, 2] = B
+    
     return imgRec
 
 
@@ -81,16 +81,14 @@ def RGB_to_YCbCr(R, G, B):
     
     Cr = T[2, 0]*R + T[2, 1]*G + T[2, 2]*B + 128
     
-    YCbCr = np.zeros((R.shape[0], R.shape[1], 3), dtype='uint8')
-    YCbCr[:, :, 0] = Y
-    YCbCr[:, :, 1] = Cb
-    YCbCr[:, :, 2] = Cr
-
-    return YCbCr, T
+    # YCbCr = read_image_inv(Y, Cb, Cr)
+    return Y, Cb, Cr, T
 
 
 def YCbCr_to_RGB(Y, Cb, Cr, T):
     Tinv = np.linalg.inv(T)
+<<<<<<< HEAD
+=======
     #
     Rdecoded = Tinv[0, 0]*Y + Tinv[0, 1]*(Cb-128) + Tinv[0, 2]*(Cr - 128)
     #clamping
@@ -99,30 +97,31 @@ def YCbCr_to_RGB(Y, Cb, Cr, T):
     Rdecoded[Rdecoded < 0] = 0
     #np.putmask(Rdecoded, Rdecoded > 255, 255)
     #np.putmask(Rdecoded, Rdecoded < 0, 0)
+>>>>>>> 6e1fd721a4b19c6868eaf0cff884cfe02f178697
     
+    Rdecoded = Tinv[0,0]*Y + Tinv[0, 1]*(Cb-128) + Tinv[0, 2]*(Cr - 128)
+    #clamping
+    np.putmask(Rdecoded, Rdecoded > 255, 255)
+    np.putmask(Rdecoded, Rdecoded < 0, 0)
     #typecasting
     Rdecoded = np.round(Rdecoded).astype(np.uint8)
 
-    Gdecoded = Tinv[1, 0]*Y + Tinv[1, 1]*(Cb-128) + Tinv[1, 2]*(Cr - 128)
+    Gdecoded = Tinv[1,0]*Y + Tinv[1, 1]*(Cb-128) + Tinv[1, 2]*(Cr - 128)
+    
     #clamping
-    Gdecoded[Gdecoded>255] = 255 
-    Gdecoded[Gdecoded < 0] = 0
+    np.putmask(Gdecoded, Gdecoded > 255, 255)
+    np.putmask(Gdecoded, Gdecoded < 0, 0)
     #typecasting
     Gdecoded = np.round(Gdecoded).astype(np.uint8)
 
-    Bdecoded = Tinv[2, 0]*Y + Tinv[2, 1]*(Cb-128) + Tinv[2, 2]*(Cr - 128)
+    Bdecoded = Tinv[2,0]*Y + Tinv[2, 1]*(Cb-128) + Tinv[2, 2]*(Cr - 128)
     #clamping
-    Bdecoded[Bdecoded>255] = 255 
-    Bdecoded[Bdecoded < 0] = 0
+    np.putmask(Bdecoded, Bdecoded > 255, 255)
+    np.putmask(Bdecoded, Bdecoded < 0, 0)
     #typecasting
     Bdecoded = np.round(Bdecoded).astype(np.uint8)
 
-    Rgb = np.zeros((Y.shape[0], Y.shape[1], 3), dtype='uint8')
-    Rgb[:, :, 0] = Rdecoded
-    Rgb[:, :, 1] = Gdecoded
-    Rgb[:, :, 2] = Bdecoded
-
-    return Rgb
+    return read_image_inv(Rdecoded, Gdecoded, Bdecoded)
 
 
 def decoder():
@@ -132,9 +131,9 @@ def decoder():
 def encoder():
     print("here")
 
-# %%
+
 def main():
-    R, G, B, imagem = read_image("imagens/barn_mountains.bmp")
+    R, G, B, imagem = read_image("imagens/peppers.bmp")
     plt.figure(0),plt.axis('off'), plt.title("original"), plt.imshow(imagem)
     show_image(imagem, "original peppers", 0)
     show_image(R,"peppers R", 1, colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
@@ -145,15 +144,15 @@ def main():
     show_image(inverted, "RGB reconstruido", 4)
     #img_pad = padding(imagem)
     #img_pad_inv = padding_inv(imagem.shape[0], imagem.shape[1], img_pad)
-    
-    img_ycbcr, T = RGB_to_YCbCr(R, G, B)
-    
+
+    Y, Cb, Cr, T = RGB_to_YCbCr(R, G, B)
+
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
-    show_image(img_ycbcr[:, :, 0], "peppers Y", 5, cmgray)
-    show_image(img_ycbcr[:, :, 1], "peppers Cb", 6, cmgray)
-    show_image(img_ycbcr[:, :, 2], "peppers Cr", 7, cmgray)
+    show_image(Y, "peppers Y", 5, cmgray)
+    show_image(Cb, "peppers Cb", 6, cmgray)
+    show_image(Cr, "peppers Cr", 7, cmgray)
     
-    img_rgb = YCbCr_to_RGB(img_ycbcr[:, :, 0], img_ycbcr[:, :, 1], img_ycbcr[:, :, 2], T)
+    img_rgb = YCbCr_to_RGB(Y, Cb, Cr, T)
     
     show_image(img_rgb, "Rgb after YCbCr", 8)
 
