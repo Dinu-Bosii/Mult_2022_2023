@@ -1,0 +1,11 @@
+{
+    "python.linting.flake8Args": [
+        "--max-line-length=120",
+    ],
+    "flake8.path": [
+        "\"--max-line-length=120\""
+    ],
+    "pylint.path": [
+        "\"--max-line-length=120\""
+    ],
+}
