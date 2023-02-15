@@ -86,17 +86,16 @@ def RGB_to_YCbCr(R, G, B):
 
 
 def YCbCr_to_RGB(Y, Cb, Cr, T):
-    Tinv = np.array([[1, 0, 1.402], [1, -0.344136, -0.714136], [1, 1.772, 0]])
-    #Tinv = np.linalg.inv(T)
+    Tinv = np.linalg.inv(T)
     
-    Rdecoded = Y + Tinv[0, 1]*(Cb-128) + Tinv[0, 2]*(Cr - 128)
+    Rdecoded = Tinv[0,0]*Y + Tinv[0, 1]*(Cb-128) + Tinv[0, 2]*(Cr - 128)
     #clamping
     np.putmask(Rdecoded, Rdecoded > 255, 255)
     np.putmask(Rdecoded, Rdecoded < 0, 0)
     #typecasting
     Rdecoded = np.round(Rdecoded).astype(np.uint8)
 
-    Gdecoded = Y + Tinv[1, 1]*(Cb-128) + Tinv[1, 2]*(Cr - 128)
+    Gdecoded = Tinv[1,0]*Y + Tinv[1, 1]*(Cb-128) + Tinv[1, 2]*(Cr - 128)
     
     #clamping
     np.putmask(Gdecoded, Gdecoded > 255, 255)
@@ -104,7 +103,7 @@ def YCbCr_to_RGB(Y, Cb, Cr, T):
     #typecasting
     Gdecoded = np.round(Gdecoded).astype(np.uint8)
 
-    Bdecoded = Y + Tinv[2, 1]*(Cb-128) + Tinv[2, 2]*(Cr - 128)
+    Bdecoded = Tinv[2,0]*Y + Tinv[2, 1]*(Cb-128) + Tinv[2, 2]*(Cr - 128)
     #clamping
     np.putmask(Bdecoded, Bdecoded > 255, 255)
     np.putmask(Bdecoded, Bdecoded < 0, 0)
