@@ -95,7 +95,7 @@ def YCbCr_to_RGB(Y, Cb, Cr, T):
     #Rdecoded[Rdecoded > 255] = 255
     #Rdecoded[Rdecoded < 0] = 0
     np.putmask(Rdecoded, Rdecoded > 255, 255)
-    np.putmask(Rdecoded, Rdecoded > 0, 255)
+    np.putmask(Rdecoded, Rdecoded < 0, 0)
     
     #typecasting
     Rdecoded = np.round(Rdecoded).astype(np.uint8)
