@@ -141,19 +141,19 @@ def main():
     inverted = read_image_inv(R, G, B)
     show_image(inverted, "RGB reconstruido", 4)
     img_pad = padding(imagem)
-    show_image(img_pad, "Padded", 12)
+    show_image(img_pad, "Padded", 5)
     #img_pad_inv = padding_inv(imagem.shape[0], imagem.shape[1], img_pad)
 
     Y, Cb, Cr, T = RGB_to_YCbCr(img_pad[:, :, 0], img_pad[:, :, 1],img_pad[:, :, 2])
 
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
-    show_image(Y, "peppers Y", 5, cmgray)
-    show_image(Cb, "peppers Cb", 6, cmgray)
-    show_image(Cr, "peppers Cr", 7, cmgray)
+    show_image(Y, "peppers Y", 6, cmgray)
+    show_image(Cb, "peppers Cb", 7, cmgray)
+    show_image(Cr, "peppers Cr", 8, cmgray)
     
     img_rgb = YCbCr_to_RGB(Y, Cb, Cr, T)
     
-    show_image(img_rgb, "Rgb after YCbCr", 8)
+    show_image(img_rgb, "Rgb after YCbCr", 9)
 
 if __name__ == "__main__":
     main()
