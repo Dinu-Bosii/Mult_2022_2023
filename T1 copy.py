@@ -2,7 +2,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.colors as clr
 import numpy as np
-
+import cv2
+import scipy as sp
 
 #3.2
 def colormap(name, colors, num):
@@ -45,7 +46,7 @@ def padding(image):
         nl = 32 - l % 32 # número de linhas adicionar
         #ll = x[nl-1, :]
 
-        ll = image[l-1, :][np.newaxis, :]
+        ll = image[nl-1, :][np.newaxis, :]
 
         repl = ll.repeat(nl, axis=0)
 
@@ -55,7 +56,7 @@ def padding(image):
     if c % 32 != 0:
         nc = 32 - c % 32 # número de colunas a adicionar
 
-        lc = image[:, c-1][:, np.newaxis] #last column
+        lc = image[:, nc-1][:, np.newaxis] #last column
 
         repc = lc.repeat(nc, axis=1)
 
@@ -129,7 +130,17 @@ def decoder():
 def encoder():
     print("2")
 
-
+def sub_amostragem():
+    #4:0:2 -> erro de sintaxe
+    print("123")
+    cv2.resize()
+    
+    
+def DCT(X):
+    x = 1
+    X_dct = dct(dct(X, norm='ortho').T, norm='ortho').T
+    
+    
 def main():
     R, G, B, imagem = read_image("imagens/barn_mountains.bmp")
     plt.figure(0),plt.axis('off'), plt.title("original"), plt.imshow(imagem)
@@ -141,10 +152,10 @@ def main():
     inverted = read_image_inv(R, G, B)
     show_image(inverted, "RGB reconstruido", 4)
     img_pad = padding(imagem)
-    show_image(img_pad, "Padded", 12)
+    show_image(img_pad, "padded", 12)
     #img_pad_inv = padding_inv(imagem.shape[0], imagem.shape[1], img_pad)
 
-    Y, Cb, Cr, T = RGB_to_YCbCr(img_pad[:, :, 0], img_pad[:, :, 1],img_pad[:, :, 2])
+    Y, Cb, Cr, T = RGB_to_YCbCr(R, G, B)
 
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
     show_image(Y, "peppers Y", 5, cmgray)
@@ -171,5 +182,7 @@ if __name__ == "__main__":
 
 
 # uma das tabelas com a apreciação subjetiva da qualidade(?)
+#---
+#variação de cores alta ==> frequencia alta 
 
 # %%
