@@ -117,6 +117,78 @@ def YCbCr_to_RGB(Y, Cb, Cr, T):
 
     return read_image_inv(Rdecoded, Gdecoded, Bdecoded)
 
+# %%
+def sampling(Y,Cb,Cr,sB,sR):
+    taxa_sB=4/sB
+    taxa_sB=int(taxa_sB)
+    taxa_sR=4/sR
+    taxa_sR=int(taxa_sR)
+
+    global Cb_ch,Cr_ch
+
+    if(sR!=0):
+        Cb_ch=np.zeros((Cb.shape[0],int(Cb.shape[1]/sB)))
+        Cr_ch=np.zeros((Cr.shape[0],int(Cr.shape[1]/sR)))
+
+
+        for i in range(len(Cb)):
+                #step e a taxa sB
+                for j in range(0,len(Cb[0]) -taxa_sB,taxa_sB):
+                    soma=0
+                    for h in range(j,j+taxa_sB):
+                        soma+=Cb[i][h]
+                    Cb_ch[i][int(j/taxa_sB)]=soma/taxa_sB
+        for i in range(len(Cr)):
+            #step e a taxasR
+            for j in range(0,len(Cr[0]) - taxa_sR,taxa_sR):
+                soma=0
+                for h in range(j,j+taxa_sR):
+                    soma+=Cr[i][h]
+                Cr_ch[i][int(j/taxa_sR)]=soma/taxa_sR
+    
+    if (sR==0):
+        #sampling horizontal e vertical
+        pass
+
+
+    return Y,Cb_ch,Cr_ch
+# %%
+def down_sampling(Y,Cb,Cr,sB,sR):
+    taxa_sB=4/sB
+    taxa_sB=int(taxa_sB)
+    taxa_sR=4/sR
+    taxa_sR=int(taxa_sR)
+
+    global Cb_ch,Cr_ch
+
+    if(sR!=0):
+        Cb_ch=np.zeros((Cb.shape[0],int(Cb.shape[1]*sB)))
+        Cr_ch=np.zeros((Cr.shape[0],int(Cr.shape[1]*sR)))
+
+
+        for i in range(len(Cb)):
+                count=0;
+                for j in range(0,len(Cb[0])):
+                    for h in range(taxa_sB):
+                        Cb_ch[i][count]=Cb[i][j]
+                        count+=1;
+        
+        for i in range(len(Cr)):
+                count=0;
+                for j in range(0,len(Cr[0])):
+                    for h in range(taxa_sR):
+                        Cr_ch[i][count]=Cr[i][j]
+                        count+=1;
+    
+    if (sR==0):
+        #sampling horizontal e vertical
+        pass
+    
+    return Y,Cb_ch,Cr_ch
+
+
+
+    
 
 def decoder():
     #read_image
@@ -154,6 +226,8 @@ def main():
     img_rgb = YCbCr_to_RGB(Y, Cb, Cr, T)
     
     show_image(img_rgb, "Rgb after YCbCr", 9)
+
+    sampling(Y,Cb,Cr,2,2)
 
 if __name__ == "__main__":
     main()
