@@ -119,12 +119,13 @@ def YCbCr_to_RGB(Y, Cb, Cr, T):
 
 # %%
 def sampling(Y,Cb,Cr,sB,sR):
+    global Cb_ch,Cr_ch,taxa_sR
     taxa_sB=4/sB
     taxa_sB=int(taxa_sB)
-    taxa_sR=4/sR
-    taxa_sR=int(taxa_sR)
+    if(sR!=0):
+        taxa_sR=4/sR
+        taxa_sR=int(taxa_sR)
 
-    global Cb_ch,Cr_ch
 
     if(sR!=0):
         Cb_ch=np.zeros((Cb.shape[0],int(Cb.shape[1]/sB)))
@@ -147,20 +148,56 @@ def sampling(Y,Cb,Cr,sB,sR):
                 Cr_ch[i][int(j/taxa_sR)]=soma/taxa_sR
     
     if (sR==0):
-        #sampling horizontal e vertical
-        pass
+        Cb_ch=np.zeros((Cb.shape[0],int(Cb.shape[1]/sB)))
+        Cr_ch=np.zeros((Cr.shape[0],int(Cr.shape[1]/sB)))
 
+
+        for i in range(len(Cb)):
+                #step e a taxa sB
+                for j in range(0,len(Cb[0]) -taxa_sB,taxa_sB):
+                    soma=0
+                    for h in range(j,j+taxa_sB):
+                        soma+=Cb[i][h]
+                    Cb_ch[i][int(j/taxa_sB)]=soma/taxa_sB
+        for i in range(len(Cr)):
+            #step e a taxasR
+            for j in range(0,len(Cr[0]) - taxa_sB,taxa_sB):
+                soma=0
+                for h in range(j,j+taxa_sB):
+                    soma+=Cr[i][h]
+                Cr_ch[i][int(j/taxa_sB)]=soma/taxa_sB
+        
+        Cb_ch_1=np.zeros((int(Cb.shape[0]/sB),int(Cb.shape[1]/sB)))
+        Cr_ch_1=np.zeros((int(Cr.shape[0]/sB),int(Cr.shape[1]/sB)))
+
+        for i in range(len(Cb_ch[0])):
+                #step e a taxa sB
+                for j in range(0,len(Cb_ch) -taxa_sB,taxa_sB):
+                    soma=0
+                    for h in range(j,j+taxa_sB):
+                        soma+=Cb_ch[h][i]
+                    Cb_ch_1[int(j/taxa_sB)][i]=soma/taxa_sB
+        for i in range(len(Cr_ch[0])):
+            #step e a taxasR
+            for j in range(0,len(Cr_ch) - taxa_sB,taxa_sB):
+                soma=0
+                for h in range(j,j+taxa_sB):
+                    soma+=Cr_ch[h][i]
+                Cr_ch_1[int(j/taxa_sB)][i]=soma/taxa_sB
+        
+        Cb_ch=Cb_ch_1
+        Cr_ch=Cr_ch_1
 
     return Y,Cb_ch,Cr_ch
 # %%
 def down_sampling(Y,Cb,Cr,sB,sR):
+    global Cb_ch,Cr_ch,taxa_sR
     taxa_sB=4/sB
     taxa_sB=int(taxa_sB)
-    taxa_sR=4/sR
-    taxa_sR=int(taxa_sR)
-
-    global Cb_ch,Cr_ch
-
+    if(sR!=0):
+        taxa_sR=4/sR
+        taxa_sR=int(taxa_sR)
+        
     if(sR!=0):
         Cb_ch=np.zeros((Cb.shape[0],int(Cb.shape[1]*sB)))
         Cr_ch=np.zeros((Cr.shape[0],int(Cr.shape[1]*sR)))
@@ -182,7 +219,43 @@ def down_sampling(Y,Cb,Cr,sB,sR):
     
     if (sR==0):
         #sampling horizontal e vertical
-        pass
+        Cb_ch=np.zeros((Cb.shape[0],int(Cb.shape[1]*sB)))
+        Cr_ch=np.zeros((Cr.shape[0],int(Cr.shape[1]*sB)))
+
+
+        for i in range(len(Cb)):
+                count=0;
+                for j in range(0,len(Cb[0])):
+                    for h in range(taxa_sB):
+                        Cb_ch[i][count]=Cb[i][j]
+                        count+=1;
+        
+        for i in range(len(Cr)):
+                count=0;
+                for j in range(0,len(Cr[0])):
+                    for h in range(taxa_sB):
+                        Cr_ch[i][count]=Cr[i][j]
+                        count+=1;
+        
+        Cb_ch_1=np.zeros((Cb.shape[0]*sB,int(Cb.shape[1]*sB)))
+        Cr_ch_1=np.zeros((Cr.shape[0]*sB,int(Cr.shape[1]*sB)))
+
+        for i in range(len(Cb_ch[0])):
+                count=0;
+                for j in range(0,len(Cb_ch)):
+                    for h in range(taxa_sB):
+                        Cb_ch_1[count][i]=Cb_ch[j][i]
+                        count+=1;
+        
+        for i in range(len(Cr_ch[0])):
+                count=0;
+                for j in range(0,len(Cr_ch)):
+                    for h in range(taxa_sB):
+                        Cr_ch_1[count][i]=Cr_ch[j][i]
+                        count+=1;
+        
+        Cb_ch = Cb_ch_1
+        Cr_ch = Cr_ch_1
     
     return Y,Cb_ch,Cr_ch
 
