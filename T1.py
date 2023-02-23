@@ -2,7 +2,14 @@
 import matplotlib.pyplot as plt
 import matplotlib.colors as clr
 import numpy as np
+import cv2
 
+# variáveis globais
+fig_num = 0
+T = np.array([[0.299, 0.587, 0.114],
+                  [-0.168736, -0.331264, 0.5],
+                  [0.5, -0.418688, -0.081312]])
+Tinv = np.linalg.inv(T)
 
 #3.2
 def colormap(name, colors, num):
@@ -29,10 +36,13 @@ def read_image_inv(R, G, B):
 
 
 #3.3
-def show_image(img,  title, fig, cmap=None):
-    plt.figure(fig)
+def show_image(img,  title, cmap=None):
+    
+    plt.figure()
     plt.axis('off'), plt.title(title), plt.imshow(img)
     plt.imshow(img, cmap)
+
+    
 
 
 #4
@@ -72,10 +82,6 @@ def padding_inv(l, c, imagem_pad):
 
 #5
 def RGB_to_YCbCr(R, G, B):
-    T = np.array([[0.299, 0.587, 0.114],
-                  [-0.168736, -0.331264, 0.5],
-                  [0.5, -0.418688, -0.081312]])
-
     Y = T[0, 0]*R + T[0, 1]*G + T[0, 2]*B
     
     Cb = T[1, 0]*R + T[1, 1]*G + T[1, 2]*B + 128
@@ -86,39 +92,25 @@ def RGB_to_YCbCr(R, G, B):
     return Y, Cb, Cr, T
 
 
-def YCbCr_to_RGB(Y, Cb, Cr, T):
-    Tinv = np.linalg.inv(T)
-    
-    Rdecoded = Tinv[0,0]*Y + Tinv[0, 1]*(Cb-128) + Tinv[0, 2]*(Cr - 128)
-    #clamping
-    #np.putmask(Rdecoded, Rdecoded > 255, 255)
-    #np.putmask(Rdecoded, Rdecoded < 0, 0)
-    Rdecoded[Rdecoded > 255] = 255
-    Rdecoded[Rdecoded < 0] = 0
-    #typecasting
-    Rdecoded = np.round(Rdecoded).astype(np.uint8)
-
-    Gdecoded = Tinv[1,0]*Y + Tinv[1, 1]*(Cb-128) + Tinv[1, 2]*(Cr - 128)
-    
-    #clamping
-    Gdecoded[Gdecoded > 255] = 255
-    Gdecoded[Gdecoded < 0] = 0
-    #typecasting
-    Gdecoded = np.round(Gdecoded).astype(np.uint8)
-
-    Bdecoded = Tinv[2,0]*Y + Tinv[2, 1]*(Cb-128) + Tinv[2, 2]*(Cr - 128)
-    
-    #clamping
-    Bdecoded[Bdecoded > 255] = 255
-    Bdecoded[Bdecoded < 0] = 0
- 
-    #typecasting
-    Bdecoded = np.round(Bdecoded).astype(np.uint8)
-
+def YCbCr_to_RGB(Y, Cb, Cr):  
+    Rdecoded = YCbCr_to_RGB_aux(0, Y, Cb, Cr)
+    Gdecoded = YCbCr_to_RGB_aux(1, Y, Cb, Cr)
+    Bdecoded = YCbCr_to_RGB_aux(2, Y, Cb, Cr)
     return read_image_inv(Rdecoded, Gdecoded, Bdecoded)
 
-# %%
-def sampling(Y,Cb,Cr,sB,sR):
+
+def YCbCr_to_RGB_aux(arg0, Y, Cb, Cr):
+    result = Tinv[arg0, 0] * Y + Tinv[arg0, 1] * (Cb - 128) + Tinv[arg0, 2] * (Cr - 128)
+    #clamping
+    result[result > 255] = 255
+    result[result < 0] = 0
+    #typecasting
+    result = np.round(result).astype(np.uint8)
+
+    return result
+
+"""
+def downsampling(Y,Cb,Cr,sB,sR):
     global Cb_ch,Cr_ch,taxa_sR
     taxa_sB=4/sB
     taxa_sB=int(taxa_sB)
@@ -189,8 +181,8 @@ def sampling(Y,Cb,Cr,sB,sR):
         Cr_ch=Cr_ch_1
 
     return Y,Cb_ch,Cr_ch
-# %%
-def down_sampling(Y,Cb,Cr,sB,sR):
+
+def upsampling(Y,Cb,Cr,sB,sR):
     global Cb_ch,Cr_ch,taxa_sR
     taxa_sB=4/sB
     taxa_sB=int(taxa_sB)
@@ -206,14 +198,14 @@ def down_sampling(Y,Cb,Cr,sB,sR):
         for i in range(len(Cb)):
                 count=0;
                 for j in range(0,len(Cb[0])):
-                    for h in range(taxa_sB):
+                    for _ in range(taxa_sB):
                         Cb_ch[i][count]=Cb[i][j]
                         count+=1;
         
         for i in range(len(Cr)):
                 count=0;
                 for j in range(0,len(Cr[0])):
-                    for h in range(taxa_sR):
+                    for _ in range(taxa_sR):
                         Cr_ch[i][count]=Cr[i][j]
                         count+=1;
     
@@ -226,14 +218,14 @@ def down_sampling(Y,Cb,Cr,sB,sR):
         for i in range(len(Cb)):
                 count=0;
                 for j in range(0,len(Cb[0])):
-                    for h in range(taxa_sB):
+                    for _ in range(taxa_sB):
                         Cb_ch[i][count]=Cb[i][j]
                         count+=1;
         
         for i in range(len(Cr)):
                 count=0;
                 for j in range(0,len(Cr[0])):
-                    for h in range(taxa_sB):
+                    for _ in range(taxa_sB):
                         Cr_ch[i][count]=Cr[i][j]
                         count+=1;
         
@@ -243,14 +235,14 @@ def down_sampling(Y,Cb,Cr,sB,sR):
         for i in range(len(Cb_ch[0])):
                 count=0;
                 for j in range(0,len(Cb_ch)):
-                    for h in range(taxa_sB):
+                    for _ in range(taxa_sB):
                         Cb_ch_1[count][i]=Cb_ch[j][i]
                         count+=1;
         
         for i in range(len(Cr_ch[0])):
                 count=0;
                 for j in range(0,len(Cr_ch)):
-                    for h in range(taxa_sB):
+                    for _ in range(taxa_sB):
                         Cr_ch_1[count][i]=Cr_ch[j][i]
                         count+=1;
         
@@ -258,49 +250,94 @@ def down_sampling(Y,Cb,Cr,sB,sR):
         Cr_ch = Cr_ch_1
     
     return Y,Cb_ch,Cr_ch
+"""
+def downsampling(Cb, Cr, FCb, FCr):
+    #4:0:2 -> erro de sintaxe
+    #dsize = (width, height), ou seja, ao contrário do que se espera
+
+    if FCr == 0:
+        #dsize_b = (int(Cb.shape[0] * f), int(Cb.shape[1] * f))
+        #dsize_r = (int(Cr.shape[0] * f), int(Cr.shape[1] * f))
+        Cr_fx = Cb_fx = C_fy = FCb / 4
+    else:
+        #dsize_b = (int(FCb/4 *  Cb.shape[1]), Cb.shape[0])
+        #dsize_r = (int(FCr/4 *  Cb.shape[1]), Cr.shape[0])
+        #Cb_resized = cv2.resize(Cb, dsize_b)
+        #Cr_resized = cv2.resize(Cb, dsize_r)
+        Cb_fx = FCb / 4
+        Cr_fx = FCr / 4
+        C_fy = 1.0
+    Cb_down = cv2.resize(Cb, (0, 0), fx = Cb_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
+    Cr_down = cv2.resize(Cr, (0, 0), fx = Cr_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
+
+    return Cb_down, Cr_down
 
 
-
+def upsampling(Cb, Cr, FCb, FCr):
+    if FCr == 0:
+        Cr_fx = Cb_fx = C_fy = 4 / FCb
+    else:
+        Cb_fx = 4 / FCb
+        Cr_fx = 4 / FCr
+        C_fy = 1.0
+        
+    Cb_up = cv2.resize(Cb, (0, 0), fx = Cb_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
+    Cr_up = cv2.resize(Cr, (0, 0), fx = Cr_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
     
+    return Cb_up, Cr_up
+    
+def encoder(img_name, FCb, FCr):
+    R, G, B, image = read_image(img_name)
+    show_image(image, 'Original')
+    show_image(R,"Canal R", colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
+    show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
+    show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
+    
+    #Padding
+    image_pad = padding(image)
+    show_image(image_pad, "Padded")
+    
+    #RGB to YCbCr
+    Y, Cb, Cr, T = RGB_to_YCbCr(image_pad[:, :, 0], image_pad[:, :, 1],image_pad[:, :, 2])
+    cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
+    #show_image(Y, "Canal Y", cmgray)
+    show_image(Cb, "Canal Cb", cmgray)
+    show_image(Cr, "Canal Cr", cmgray)
 
-def decoder():
-    #read_image
-    #colormap
-    #padding
-    #rgb to ycbcr
-    print("1")
+    #downsampling
+    Cb, Cr = downsampling(Cb, Cr, FCb, FCr)
+    #show_image(Y, "Canal Y downsampled", cmgray)
+    show_image(Cb, "Canal Cb downsampled", cmgray)
+    show_image(Cr, "Canal Cr downsampled", cmgray)
 
 
-def encoder():
-    print("2")
+    return Y, Cb, Cr, image.shape
+
+
+def decoder(Y, Cb, Cr, shape, FCb, FCr):
+    Cb, Cr = upsampling(Cb, Cr, FCb, FCr)
+
+    cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
+    show_image(Y, "Canal Y upsampled", cmgray)
+    show_image(Cb, "Canal Cb upsampled", cmgray)
+    show_image(Cr, "Canal Cr upsampled", cmgray)
+    
+    image_rgb = YCbCr_to_RGB(Y, Cb, Cr)
+    show_image(image_rgb, "RGB after upsampling YCbCr")
+
+    image_pad_inv = padding_inv(shape[0], shape[1], image_rgb)
+    
+    show_image(padding_inv(shape[0], shape[1], image_pad_inv), "inverse padding")
+    return image_pad_inv
 
 
 def main():
-    R, G, B, imagem = read_image("imagens/barn_mountains.bmp")
-    plt.figure(0),plt.axis('off'), plt.title("original"), plt.imshow(imagem)
-    show_image(imagem, "original peppers", 0)
-    show_image(R,"peppers R", 1, colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
-    show_image(G,"peppers G", 2, colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
-    show_image(B,"peppers B", 3, colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
-    
-    inverted = read_image_inv(R, G, B)
-    show_image(inverted, "RGB reconstruido", 4)
-    img_pad = padding(imagem)
-    show_image(img_pad, "Padded", 5)
-    #img_pad_inv = padding_inv(imagem.shape[0], imagem.shape[1], img_pad)
+    Fator_Cb = 1
+    Fator_Cr = 1
+    img = ["peppers", "barn_mountains", "logo"]
+    Y, Cb, Cr, shape = encoder(f"imagens/{img[1]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr)
+    decoder(Y, Cb, Cr, shape, FCb=Fator_Cb, FCr=Fator_Cr)
 
-    Y, Cb, Cr, T = RGB_to_YCbCr(img_pad[:, :, 0], img_pad[:, :, 1],img_pad[:, :, 2])
-
-    cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
-    show_image(Y, "peppers Y", 6, cmgray)
-    show_image(Cb, "peppers Cb", 7, cmgray)
-    show_image(Cr, "peppers Cr", 8, cmgray)
-    
-    img_rgb = YCbCr_to_RGB(Y, Cb, Cr, T)
-    
-    show_image(img_rgb, "Rgb after YCbCr", 9)
-
-    sampling(Y,Cb,Cr,2,2)
 
 if __name__ == "__main__":
     main()
