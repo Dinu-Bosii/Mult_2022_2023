@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as clr
 import numpy as np
 import cv2
+from scipy.fftpack import dct, idct
+from numpy import r_
 
 # variáveis globais
 fig_num = 0
@@ -269,7 +271,7 @@ def downsampling(Cb, Cr, FCb, FCr):
         C_fy = 1.0
     Cb_down = cv2.resize(Cb, (0, 0), fx = Cb_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
     Cr_down = cv2.resize(Cr, (0, 0), fx = Cr_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
-
+    #print("cb downsampled shape = ", Cb_down.shape)
     return Cb_down, Cr_down
 
 
@@ -285,6 +287,28 @@ def upsampling(Cb, Cr, FCb, FCr):
     Cr_up = cv2.resize(Cr, (0, 0), fx = Cr_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
     
     return Cb_up, Cr_up
+
+
+def DCT(image, title):
+    image_DCT = dct(dct(image, norm='ortho').T, norm='ortho').T
+    plt.figure(), plt.title(f'{title} DCT')
+    plt.imshow(np.log(abs(image_DCT) + 0.0001))
+    #plt.imshow(np.log(abs(image_DCT) + 5))
+    return image_DCT
+
+#https://inst.eecs.berkeley.edu/~ee123/sp16/Sections/JPEG_DCT_Demo.html
+def DCT_8x8(image):
+    size = image.shape
+    img_dct = np.zeros(size)
+    for i in r_[:size[0]:8]:
+        for j in r_[:size[1]:8]:
+            img_dct[i:(i+8),j:(j+8)] = dct(image[i:(i+8),j:(j+8)])
+    plt.figure(), plt.title("test")
+    plt.imshow(np.log(abs(img_dct) + 0.0001), cmap=colormap('gray', [(0, 0, 0), (1, 1, 1)], 256))
+    
+def IDCT(image, title):
+    return idct(idct(image.T, norm='ortho').T, norm='ortho').T
+
     
 def encoder(img_name, FCb, FCr):
     R, G, B, image = read_image(img_name)
@@ -303,20 +327,23 @@ def encoder(img_name, FCb, FCr):
     #show_image(Y, "Canal Y", cmgray)
     show_image(Cb, "Canal Cb", cmgray)
     show_image(Cr, "Canal Cr", cmgray)
-
+    print("cb.shape = ", Cb.shape)
     #downsampling
-    Cb, Cr = downsampling(Cb, Cr, FCb, FCr)
-    #show_image(Y, "Canal Y downsampled", cmgray)
-    show_image(Cb, "Canal Cb downsampled", cmgray)
-    show_image(Cr, "Canal Cr downsampled", cmgray)
-
-
-    return Y, Cb, Cr, image.shape
+    Cb_d, Cr_d = downsampling(Cb, Cr, FCb, FCr) #obter Y_d como diz no enunciado(?)
+    #show_image(Y_d, "Canal Y downsampled", cmgray)
+    show_image(Cb_d, "Canal Cb downsampled", cmgray)
+    show_image(Cr_d, "Canal Cr downsampled", cmgray)
+    #print("cb downsampled shape = ", Cb.shape)
+    Y_dct = DCT(Y, 'Y')
+    Cb_dct = DCT(Cb_d, 'Cb')
+    Cr_dct = DCT(Cr_d, 'Cr')
+    DCT_8x8(Cb)
+    return Y, Cb_d, Cr_d, image.shape
 
 
 def decoder(Y, Cb, Cr, shape, FCb, FCr):
     Cb, Cr = upsampling(Cb, Cr, FCb, FCr)
-
+    print("cb upsampled.shape = ", Cb.shape)
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
     show_image(Y, "Canal Y upsampled", cmgray)
     show_image(Cb, "Canal Cb upsampled", cmgray)
@@ -332,10 +359,10 @@ def decoder(Y, Cb, Cr, shape, FCb, FCr):
 
 
 def main():
-    Fator_Cb = 1
-    Fator_Cr = 1
+    Fator_Cb = 2
+    Fator_Cr = 2
     img = ["peppers", "barn_mountains", "logo"]
-    Y, Cb, Cr, shape = encoder(f"imagens/{img[1]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr)
+    Y, Cb, Cr, shape = encoder(f"imagens/{img[0]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr)
     decoder(Y, Cb, Cr, shape, FCb=Fator_Cb, FCr=Fator_Cr)
 
 
