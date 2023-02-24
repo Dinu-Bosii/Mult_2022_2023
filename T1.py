@@ -13,6 +13,23 @@ T = np.array([[0.299, 0.587, 0.114],
                   [0.5, -0.418688, -0.081312]])
 Tinv = np.linalg.inv(T)
 
+Q_y=np.array([[16,11,10,16,24,40,51,61],
+                         [12,12,14,19,26,48,60,55],
+                         [14,13,16,24,40,57,69,56],
+                         [14,17,22,29,51,87,80,62],
+                         [18,22,37,56,68,109,103,77],
+                         [24,35,55,64,81,104,113,92],
+                         [49,64,78,87,103,121,120,101],
+                         [72,92,95,98,112,100,103,99]])
+Q_c=np.array([[17,18,24,47,99,99,99,99],
+                [18,21,26,66,99,99,99,99],
+                [24,26,56,99,99,99,99,99],
+                [47,66,99,99,99,99,99,99],
+                [99,99,99,99,99,99,99,99],
+                [99,99,99,99,99,99,99,99],
+                [99,99,99,99,99,99,99,99],
+                [99,99,99,99,99,99,99,99]])
+
 #3.2
 def colormap(name, colors, num):
     return clr.LinearSegmentedColormap.from_list(name, colors, num)
@@ -313,7 +330,49 @@ def IDCT_blocks(image, bsize):
 def IDCT(image):
     return idct(idct(image, norm='ortho').T, norm='ortho').T
 
+
+def Quantization(Y, Cb, Cr, bsize):
+    Y_q = np.zeros(Y.shape)
+    for i in range(0, Y.shape[0], bsize):
+        for j in range(0, Y.shape[1], bsize):
+            Y_q[i:(i+bsize), j:(j+bsize)] = np.round(np.divide(Y[i:(i+bsize), j:(j+bsize)], Q_y)).astype(np.uint8)
+            
+    Cb_q = np.zeros(Cb.shape)
+
+    for i in range(0, Cb.shape[0], bsize):
+        for j in range(0, Cb.shape[1], bsize):
+            Cb_q[i:(i+bsize), j:(j+bsize)] = np.round(np.divide(Cb[i:(i+bsize), j:(j+bsize)], Q_c)).astype(np.uint8)
     
+    Cr_q = np.zeros(Cr.shape)
+
+    for i in range(0, Cr.shape[0], bsize):
+        for j in range(0, Cr.shape[1], bsize):
+            Cr_q[i:(i+bsize), j:(j+bsize)] = np.round(np.divide(Cr[i:(i+bsize), j:(j+bsize)], Q_c)).astype(np.uint8)
+    
+    return Y_q, Cb_q, Cr_q
+
+
+def Quantization_inv(Y, Cb, Cr, bsize):
+    Y_q = np.zeros(Y.shape)
+    for i in range(0, Y.shape[0], bsize):
+        for j in range(0, Y.shape[1], bsize):
+            Y_q[i:(i+bsize), j:(j+bsize)] = np.round(np.multiply(Y[i:(i+bsize), j:(j+bsize)], Q_y)).astype(np.uint8)
+            
+    Cb_q = np.zeros(Cb.shape)
+
+    for i in range(0, Cb.shape[0], bsize):
+        for j in range(0, Cb.shape[1], bsize):
+            Cb_q[i:(i+bsize), j:(j+bsize)] = np.round(np.multiply(Cb[i:(i+bsize), j:(j+bsize)], Q_c)).astype(np.uint8)
+    
+    Cr_q = np.zeros(Cr.shape)
+
+    for i in range(0, Cr.shape[0], bsize):
+        for j in range(0, Cr.shape[1], bsize):
+            Cr_q[i:(i+bsize), j:(j+bsize)] = np.round(np.multiply(Cr[i:(i+bsize), j:(j+bsize)], Q_c)).astype(np.uint8)
+    
+    return Y_q, Cb_q, Cr_q
+    
+            
 def encoder(img_name, FCb, FCr):
     R, G, B, image = read_image(img_name)
     show_image(image, 'Original')
@@ -321,7 +380,7 @@ def encoder(img_name, FCb, FCr):
     show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
     show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
     
-    #Padding
+    #PADDING
     image_pad = padding(image)
     show_image(image_pad, "Padded")
     
@@ -332,12 +391,13 @@ def encoder(img_name, FCb, FCr):
     show_image(Cb, "Canal Cb", cmgray)
     show_image(Cr, "Canal Cr", cmgray)
 
-    #downsampling
+    #DOWNSAMPLING
     Cb_d, Cr_d = downsampling(Cb, Cr, FCb, FCr) #obter Y_d como diz no enunciado(?)
     #show_image(Y_d, "Canal Y downsampled", cmgray)
     show_image(Cb_d, "Canal Cb downsampled", cmgray)
     show_image(Cr_d, "Canal Cr downsampled", cmgray)
 
+    # DCT CONVERSION
     #Y_dct = DCT(Y)
     #Cb_dct = DCT(Cb_d)
     #Cr_dct = DCT(Cr_d)
@@ -349,12 +409,22 @@ def encoder(img_name, FCb, FCr):
     show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT", cmap=cmgray)
     show_image(np.log(abs(Cr_dct) + 0.0001), "Canal Cr DCT", cmap=cmgray)
 
-    #plt.imshow(np.log(abs(image_DCT) + 5))
-    return Y_dct, Cb_dct, Cr_dct, image.shape
+    #QUANTIZATION
+    Y_qt, Cb_qt, Cr_qt = Quantization(Y_dct, Cb_dct, Cr_dct, 8)
+    show_image(Y_qt, "Canal Y quantizado", cmgray)
+    show_image(Cb_qt, "Canal Cb quantizado", cmgray)
+    show_image(Cr_qt, "Canal Cr quantizado", cmgray)
+
+    return Y_qt, Cb_qt, Cr_qt, image.shape
 
 
 def decoder(Y, Cb, Cr, shape, FCb, FCr):
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
+    Y, Cb, Cr = Quantization_inv(Y, Cb, Cr, 8)
+    show_image(Y, "Canal Y desquantizado", cmgray)
+    show_image(Cb, "Canal Cb desquantizado", cmgray)
+    show_image(Cr, "Canal Cr desquantizado", cmgray)
+    
     Y = IDCT_blocks(Y, 8)
     Cb = IDCT_blocks(Cb, 8)
     Cr = IDCT_blocks(Cr, 8)
