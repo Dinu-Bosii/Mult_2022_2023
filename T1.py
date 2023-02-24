@@ -308,52 +308,42 @@ def IDCT_blocks(image, bsize):
         for j in range(0, im_size[1], bsize):
             img_idct[i:(i+bsize), j:(j+bsize)] = IDCT(image[i:(i+bsize),j:(j+bsize)])
     return img_idct
-"""    
-#https://inst.eecs.berkeley.edu/~ee123/sp16/Sections/JPEG_DCT_Demo.html
-def DCT_8x8(image):
-    size = image.shape
-    img_dct = np.zeros(size)
-    for i in r_[:size[0]:8]:
-        for j in r_[:size[1]:8]:
-            img_dct[i:(i+8),j:(j+8)] = dct(image[i:(i+8),j:(j+8)])
-    plt.figure(), plt.title("test"), plt.axis('off')
-    plt.imshow(np.log(abs(img_dct) + 0.0001), cmap=colormap('gray', [(0, 0, 0), (1, 1, 1)], 256))
-"""
 
-def IDCT(image, title):
+
+def IDCT(image):
     return idct(idct(image.T, norm='ortho').T, norm='ortho').T
 
     
 def encoder(img_name, FCb, FCr):
     R, G, B, image = read_image(img_name)
-    #show_image(image, 'Original')
-    #show_image(R,"Canal R", colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
-    #show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
-    #show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
+    show_image(image, 'Original')
+    show_image(R,"Canal R", colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
+    show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
+    show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
     
     #Padding
     image_pad = padding(image)
-    #show_image(image_pad, "Padded")
+    show_image(image_pad, "Padded")
     
     #RGB to YCbCr
     Y, Cb, Cr, T = RGB_to_YCbCr(image_pad[:, :, 0], image_pad[:, :, 1],image_pad[:, :, 2])
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
-    #show_image(Y, "Canal Y", cmgray)
+    show_image(Y, "Canal Y", cmgray)
     show_image(Cb, "Canal Cb", cmgray)
     show_image(Cr, "Canal Cr", cmgray)
-    #print("cb.shape = ", Cb.shape)
+
     #downsampling
     Cb_d, Cr_d = downsampling(Cb, Cr, FCb, FCr) #obter Y_d como diz no enunciado(?)
     #show_image(Y_d, "Canal Y downsampled", cmgray)
     show_image(Cb_d, "Canal Cb downsampled", cmgray)
     show_image(Cr_d, "Canal Cr downsampled", cmgray)
-    #print("cb downsampled shape = ", Cb.shape)
+
     #Y_dct = DCT(Y, 'Y')
     #Cb_dct = DCT(Cb_d, 'Cb')
     #Cr_dct = DCT(Cr_d, 'Cr')
     Y_dct = DCT_blocks(Y, 8)
-    Cb_dct = DCT_blocks(Cr, 8)
-    Cr_dct = DCT_blocks(Cb, 8)
+    Cb_dct = DCT_blocks(Cb_d, 8)
+    Cr_dct = DCT_blocks(Cr_d, 8)
     
     show_image(np.log(abs(Y_dct) + 0.0001), "Canal Y DCT", cmap=cmgray)
     show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT", cmap=cmgray)
@@ -368,7 +358,7 @@ def decoder(Y, Cb, Cr, shape, FCb, FCr):
     # IDCT
     #
     Cb, Cr = upsampling(Cb, Cr, FCb, FCr)
-    print("cb upsampled.shape = ", Cb.shape)
+
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
     show_image(Y, "Canal Y upsampled", cmgray)
     show_image(Cb, "Canal Cb upsampled", cmgray)
@@ -387,8 +377,8 @@ def main():
     Fator_Cb = 2
     Fator_Cr = 2
     img = ["peppers", "barn_mountains", "logo"]
-    Y, Cb, Cr, shape = encoder(f"imagens/{img[0]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr)
-    #decoder(Y, Cb, Cr, shape, FCb=Fator_Cb, FCr=Fator_Cr)
+    Y, Cb, Cr, shape = encoder(f"imagens/{img[1]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr)
+    decoder(Y, Cb, Cr, shape, FCb=Fator_Cb, FCr=Fator_Cr)
 
 
 if __name__ == "__main__":
