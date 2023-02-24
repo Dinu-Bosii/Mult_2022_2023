@@ -350,16 +350,21 @@ def encoder(img_name, FCb, FCr):
     show_image(np.log(abs(Cr_dct) + 0.0001), "Canal Cr DCT", cmap=cmgray)
 
     #plt.imshow(np.log(abs(image_DCT) + 5))
-    return Y, Cb_d, Cr_d, image.shape
+    return Y_dct, Cb_dct, Cr_dct, image.shape
 
 
 def decoder(Y, Cb, Cr, shape, FCb, FCr):
-    #
-    # IDCT
-    #
+    cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
+    Y = IDCT_blocks(Y, 8)
+    Cb = IDCT_blocks(Cb, 8)
+    Cr = IDCT_blocks(Cr, 8)
+    show_image(Y, "Canal Y IDCT", cmgray)
+    show_image(Cb, "Canal Cb IDCT", cmgray)
+    show_image(Cr, "Canal Cr IDCT", cmgray)
+    
     Cb, Cr = upsampling(Cb, Cr, FCb, FCr)
 
-    cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
+    
     show_image(Y, "Canal Y upsampled", cmgray)
     show_image(Cb, "Canal Cb upsampled", cmgray)
     show_image(Cr, "Canal Cr upsampled", cmgray)
