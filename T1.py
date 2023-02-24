@@ -311,7 +311,7 @@ def IDCT_blocks(image, bsize):
 
 
 def IDCT(image):
-    return idct(idct(image.T, norm='ortho').T, norm='ortho').T
+    return idct(idct(image, norm='ortho').T, norm='ortho').T
 
     
 def encoder(img_name, FCb, FCr):
@@ -338,9 +338,9 @@ def encoder(img_name, FCb, FCr):
     show_image(Cb_d, "Canal Cb downsampled", cmgray)
     show_image(Cr_d, "Canal Cr downsampled", cmgray)
 
-    #Y_dct = DCT(Y, 'Y')
-    #Cb_dct = DCT(Cb_d, 'Cb')
-    #Cr_dct = DCT(Cr_d, 'Cr')
+    #Y_dct = DCT(Y)
+    #Cb_dct = DCT(Cb_d)
+    #Cr_dct = DCT(Cr_d)
     Y_dct = DCT_blocks(Y, 8)
     Cb_dct = DCT_blocks(Cb_d, 8)
     Cr_dct = DCT_blocks(Cr_d, 8)
