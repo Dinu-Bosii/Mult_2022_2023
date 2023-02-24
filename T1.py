@@ -201,31 +201,24 @@ def Quantization_aux(arr, bsize, Q):
     return arr_Q.astype(np.int32)
 
 def Quantization_aux2(arr, bsize, Q):
-    #print(arr[0:8, 0:8])
     arr_Q = np.zeros(arr.shape)
     for i in range(0, arr.shape[0], bsize):
         for j in range(0, arr.shape[1], bsize):
             arr_Q[i:(i+bsize), j:(j+bsize)] = np.round(np.multiply(arr[i:(i+bsize), j:(j+bsize)], Q))
-    #print(arr_Q[0:8, 0:8]) 
+
     return arr_Q.astype(np.int32)
 
 def Quantization_inv(Y_q, Cb_q, Cr_q, bsize, Qy, Qc):
-    print("------------------")
-    #print(Y_q[0:8, 0:8])
+
     Y = Quantization_aux2(Y_q, bsize, Qy)
     Cb = Quantization_aux2(Cb_q, bsize, Qc)
     Cr =  Quantization_aux2(Cr_q, bsize, Qc)
 
-    
     return Y, Cb, Cr
 
 
 def Quantization_quality(Q, qf):
-    if qf >= 50:
-        sf=(100 - qf)/ 50
-    else:
-        sf = qf/50
-    
+    sf = (100 - qf)/ 50 if qf >= 50 else qf/50
     if sf == 0:
         return Q
 
@@ -272,13 +265,14 @@ def encoder(img_name, FCb, FCr, Qy, Qc):
     show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT", cmap=cmgray)
     show_image(np.log(abs(Cr_dct) + 0.0001), "Canal Cr DCT", cmap=cmgray)
     
-    #print(Y_dct[0:8, 0:8].astype(int))
+    print(Y_dct[0:8, 0:8].astype(int))
     #QUANTIZATION
     Y_qt, Cb_qt, Cr_qt = Quantization(Y_dct, Cb_dct, Cr_dct, 8, Qy, Qc)
-    show_image(Y_qt, "Canal Y quantizado", cmgray)
-    show_image(Cb_qt, "Canal Cb quantizado", cmgray)
-    show_image(Cr_qt, "Canal Cr quantizado", cmgray)
+    show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y quantizado", cmap=cmgray)
+    show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb quantizado", cmap=cmgray)
+    show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr quantizado", cmap=cmgray)
     #print(Y_qt[0:8, 0:8])
+    print("-------------------")
     #print(type(Y_qt[0][0]))
     return Y_qt, Cb_qt, Cr_qt, image.shape
 
@@ -287,18 +281,18 @@ def decoder(Y_qt, Cb_qt, Cr_qt, shape, FCb, FCr, Qy, Qc):
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
 
     Y_dq, Cb_dq, Cr_dq = Quantization_inv(Y_qt, Cb_qt, Cr_qt, 8, Qy, Qc)
-    #print(Y_dq[0:8, 0:8])
-    show_image(Y_dq, "Canal Y desquantizado", cmgray)
-    show_image(Cb_dq, "Canal Cb desquantizado", cmgray)
-    show_image(Cr_dq, "Canal Cr desquantizado", cmgray)
-    
+    print(Y_dq[0:8, 0:8])
+    show_image(np.log(abs(Y_dq) + 0.0001), "Canal Y desquantizado", cmgray)
+    show_image(np.log(abs(Cb_dq) + 0.0001), "Canal Cb desquantizado", cmgray)
+    show_image(np.log(abs(Cr_dq) + 0.0001), "Canal Cr desquantizado", cmgray)
+
     Y_idct = IDCT_blocks(Y_dq, 8)
     Cb_idct = IDCT_blocks(Cb_dq, 8)
     Cr_idct = IDCT_blocks(Cr_dq, 8)
     show_image(Y_idct, "Canal Y IDCT", cmgray)
     show_image(Cb_idct, "Canal Cb IDCT", cmgray)
     show_image(Cr_idct, "Canal Cr IDCT", cmgray)
-    
+
     Cb_up, Cr_up = upsampling(Cb_idct, Cr_idct, FCb, FCr)
 
     show_image(Y_idct, "Canal Y upsampled", cmgray)
@@ -313,14 +307,14 @@ def decoder(Y_qt, Cb_qt, Cr_qt, shape, FCb, FCr, Qy, Qc):
     show_image(padding_inv(shape[0], shape[1], image_pad_inv), "inverse padding")
     return image_pad_inv
 
-
+# %%
 def main():
     img = ["peppers", "barn_mountains", "logo"]
     Fator_Cb = 2
     Fator_Cr = 2
     Qy = Quantization_quality(Q_y, 75)
     Qc = Quantization_quality(Q_c, 75)
-    Y, Cb, Cr, shape = encoder(f"imagens/{img[0]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr, Qy=Q_y, Qc=Q_c)
+    Y, Cb, Cr, shape = encoder(f"imagens/{img[1]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
     decoder(Y, Cb, Cr, shape, FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
 
 
