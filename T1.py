@@ -14,13 +14,13 @@ T = np.array([[0.299, 0.587, 0.114],
 Tinv = np.linalg.inv(T)
 
 Q_y=np.array([[16,11,10,16,24,40,51,61],
-                         [12,12,14,19,26,48,60,55],
-                         [14,13,16,24,40,57,69,56],
-                         [14,17,22,29,51,87,80,62],
-                         [18,22,37,56,68,109,103,77],
-                         [24,35,55,64,81,104,113,92],
-                         [49,64,78,87,103,121,120,101],
-                         [72,92,95,98,112,100,103,99]])
+              [12,12,14,19,26,48,60,55],
+              [14,13,16,24,40,57,69,56],
+              [14,17,22,29,51,87,80,62],
+              [18,22,37,56,68,109,103,77],
+              [24,35,55,64,81,104,113,92],
+              [49,64,78,87,103,121,120,101],
+              [72,92,95,98,112,100,103,99]])
 Q_c=np.array([[17,18,24,47,99,99,99,99],
                 [18,21,26,66,99,99,99,99],
                 [24,26,56,99,99,99,99,99],
@@ -43,7 +43,6 @@ def read_image(image):
     
     return R, G, B, img
 
-
 #3.4
 def read_image_inv(R, G, B):
     imgRec = np.zeros((R.shape[0], R.shape[1], 3), dtype='uint8')
@@ -53,16 +52,12 @@ def read_image_inv(R, G, B):
     
     return imgRec
 
-
 #3.3
 def show_image(img,  title, cmap=None):
     
     plt.figure()
     plt.axis('off'), plt.title(title), plt.imshow(img)
     plt.imshow(img, cmap)
-
-    
-
 
 #4
 def padding(image):
@@ -98,7 +93,6 @@ def padding(image):
 def padding_inv(l, c, imagem_pad):
     return imagem_pad[0:l, 0:c, :]
 
-
 #5
 def RGB_to_YCbCr(R, G, B):
     Y = T[0, 0]*R + T[0, 1]*G + T[0, 2]*B
@@ -108,7 +102,7 @@ def RGB_to_YCbCr(R, G, B):
     Cr = T[2, 0]*R + T[2, 1]*G + T[2, 2]*B + 128
     
     # YCbCr = read_image_inv(Y, Cb, Cr)
-    return Y, Cb, Cr, T
+    return Y, Cb, Cr
 
 
 def YCbCr_to_RGB(Y, Cb, Cr):  
@@ -128,148 +122,7 @@ def YCbCr_to_RGB_aux(arg0, Y, Cb, Cr):
 
     return result
 
-"""
-def downsampling(Y,Cb,Cr,sB,sR):
-    global Cb_ch,Cr_ch,taxa_sR
-    taxa_sB=4/sB
-    taxa_sB=int(taxa_sB)
-    if(sR!=0):
-        taxa_sR=4/sR
-        taxa_sR=int(taxa_sR)
 
-
-    if(sR!=0):
-        Cb_ch=np.zeros((Cb.shape[0],int(Cb.shape[1]/sB)))
-        Cr_ch=np.zeros((Cr.shape[0],int(Cr.shape[1]/sR)))
-
-
-        for i in range(len(Cb)):
-                #step e a taxa sB
-                for j in range(0,len(Cb[0]) -taxa_sB,taxa_sB):
-                    soma=0
-                    for h in range(j,j+taxa_sB):
-                        soma+=Cb[i][h]
-                    Cb_ch[i][int(j/taxa_sB)]=soma/taxa_sB
-        for i in range(len(Cr)):
-            #step e a taxasR
-            for j in range(0,len(Cr[0]) - taxa_sR,taxa_sR):
-                soma=0
-                for h in range(j,j+taxa_sR):
-                    soma+=Cr[i][h]
-                Cr_ch[i][int(j/taxa_sR)]=soma/taxa_sR
-    
-    if (sR==0):
-        Cb_ch=np.zeros((Cb.shape[0],int(Cb.shape[1]/sB)))
-        Cr_ch=np.zeros((Cr.shape[0],int(Cr.shape[1]/sB)))
-
-
-        for i in range(len(Cb)):
-                #step e a taxa sB
-                for j in range(0,len(Cb[0]) -taxa_sB,taxa_sB):
-                    soma=0
-                    for h in range(j,j+taxa_sB):
-                        soma+=Cb[i][h]
-                    Cb_ch[i][int(j/taxa_sB)]=soma/taxa_sB
-        for i in range(len(Cr)):
-            #step e a taxasR
-            for j in range(0,len(Cr[0]) - taxa_sB,taxa_sB):
-                soma=0
-                for h in range(j,j+taxa_sB):
-                    soma+=Cr[i][h]
-                Cr_ch[i][int(j/taxa_sB)]=soma/taxa_sB
-        
-        Cb_ch_1=np.zeros((int(Cb.shape[0]/sB),int(Cb.shape[1]/sB)))
-        Cr_ch_1=np.zeros((int(Cr.shape[0]/sB),int(Cr.shape[1]/sB)))
-
-        for i in range(len(Cb_ch[0])):
-                #step e a taxa sB
-                for j in range(0,len(Cb_ch) -taxa_sB,taxa_sB):
-                    soma=0
-                    for h in range(j,j+taxa_sB):
-                        soma+=Cb_ch[h][i]
-                    Cb_ch_1[int(j/taxa_sB)][i]=soma/taxa_sB
-        for i in range(len(Cr_ch[0])):
-            #step e a taxasR
-            for j in range(0,len(Cr_ch) - taxa_sB,taxa_sB):
-                soma=0
-                for h in range(j,j+taxa_sB):
-                    soma+=Cr_ch[h][i]
-                Cr_ch_1[int(j/taxa_sB)][i]=soma/taxa_sB
-        
-        Cb_ch=Cb_ch_1
-        Cr_ch=Cr_ch_1
-
-    return Y,Cb_ch,Cr_ch
-
-def upsampling(Y,Cb,Cr,sB,sR):
-    global Cb_ch,Cr_ch,taxa_sR
-    taxa_sB=4/sB
-    taxa_sB=int(taxa_sB)
-    if(sR!=0):
-        taxa_sR=4/sR
-        taxa_sR=int(taxa_sR)
-        
-    if(sR!=0):
-        Cb_ch=np.zeros((Cb.shape[0],int(Cb.shape[1]*sB)))
-        Cr_ch=np.zeros((Cr.shape[0],int(Cr.shape[1]*sR)))
-
-
-        for i in range(len(Cb)):
-                count=0;
-                for j in range(0,len(Cb[0])):
-                    for _ in range(taxa_sB):
-                        Cb_ch[i][count]=Cb[i][j]
-                        count+=1;
-        
-        for i in range(len(Cr)):
-                count=0;
-                for j in range(0,len(Cr[0])):
-                    for _ in range(taxa_sR):
-                        Cr_ch[i][count]=Cr[i][j]
-                        count+=1;
-    
-    if (sR==0):
-        #sampling horizontal e vertical
-        Cb_ch=np.zeros((Cb.shape[0],int(Cb.shape[1]*sB)))
-        Cr_ch=np.zeros((Cr.shape[0],int(Cr.shape[1]*sB)))
-
-
-        for i in range(len(Cb)):
-                count=0;
-                for j in range(0,len(Cb[0])):
-                    for _ in range(taxa_sB):
-                        Cb_ch[i][count]=Cb[i][j]
-                        count+=1;
-        
-        for i in range(len(Cr)):
-                count=0;
-                for j in range(0,len(Cr[0])):
-                    for _ in range(taxa_sB):
-                        Cr_ch[i][count]=Cr[i][j]
-                        count+=1;
-        
-        Cb_ch_1=np.zeros((Cb.shape[0]*sB,int(Cb.shape[1]*sB)))
-        Cr_ch_1=np.zeros((Cr.shape[0]*sB,int(Cr.shape[1]*sB)))
-
-        for i in range(len(Cb_ch[0])):
-                count=0;
-                for j in range(0,len(Cb_ch)):
-                    for _ in range(taxa_sB):
-                        Cb_ch_1[count][i]=Cb_ch[j][i]
-                        count+=1;
-        
-        for i in range(len(Cr_ch[0])):
-                count=0;
-                for j in range(0,len(Cr_ch)):
-                    for _ in range(taxa_sB):
-                        Cr_ch_1[count][i]=Cr_ch[j][i]
-                        count+=1;
-        
-        Cb_ch = Cb_ch_1
-        Cr_ch = Cr_ch_1
-    
-    return Y,Cb_ch,Cr_ch
-"""
 def downsampling(Cb, Cr, FCb, FCr):
     #4:0:2 -> erro de sintaxe
     #dsize = (width, height), ou seja, ao contrário do que se espera
@@ -309,6 +162,7 @@ def upsampling(Cb, Cr, FCb, FCr):
 def DCT(image):
     return dct(dct(image, norm='ortho').T, norm='ortho').T
 
+
 def DCT_blocks(image, bsize):
     im_size = image.shape
     img_dct = np.zeros(im_size)
@@ -331,65 +185,67 @@ def IDCT(image):
     return idct(idct(image, norm='ortho').T, norm='ortho').T
 
 
-def Quantization(Y, Cb, Cr, bsize):
-    Y_q = np.zeros(Y.shape)
-    for i in range(0, Y.shape[0], bsize):
-        for j in range(0, Y.shape[1], bsize):
-            Y_q[i:(i+bsize), j:(j+bsize)] = np.round(np.divide(Y[i:(i+bsize), j:(j+bsize)], Q_y)).astype(np.uint8)
-            
-    Cb_q = np.zeros(Cb.shape)
-
-    for i in range(0, Cb.shape[0], bsize):
-        for j in range(0, Cb.shape[1], bsize):
-            Cb_q[i:(i+bsize), j:(j+bsize)] = np.round(np.divide(Cb[i:(i+bsize), j:(j+bsize)], Q_c)).astype(np.uint8)
-    
-    Cr_q = np.zeros(Cr.shape)
-
-    for i in range(0, Cr.shape[0], bsize):
-        for j in range(0, Cr.shape[1], bsize):
-            Cr_q[i:(i+bsize), j:(j+bsize)] = np.round(np.divide(Cr[i:(i+bsize), j:(j+bsize)], Q_c)).astype(np.uint8)
+def Quantization(Y, Cb, Cr, bsize, Qy, Qc):
+    Y_q = Quantization_aux(Y, bsize, Qy)
+    Cb_q = Quantization_aux(Cb, bsize, Qc)
+    Cr_q =  Quantization_aux(Cr, bsize, Qc)
     
     return Y_q, Cb_q, Cr_q
 
-
-def Quantization_inv(Y, Cb, Cr, bsize):
-    Y_q = np.zeros(Y.shape)
-    for i in range(0, Y.shape[0], bsize):
-        for j in range(0, Y.shape[1], bsize):
-            Y_q[i:(i+bsize), j:(j+bsize)] = np.round(np.multiply(Y[i:(i+bsize), j:(j+bsize)], Q_y)).astype(np.uint8)
+def Quantization_aux(arr, bsize, Q):
+    arr_Q = np.zeros(arr.shape)
+    for i in range(0, arr.shape[0], bsize):
+        for j in range(0, arr.shape[1], bsize):
+            arr_Q[i:(i+bsize), j:(j+bsize)] = np.round(np.divide(arr[i:(i+bsize), j:(j+bsize)], Q))
             
-    Cb_q = np.zeros(Cb.shape)
+    return arr_Q.astype(np.int32)
 
-    for i in range(0, Cb.shape[0], bsize):
-        for j in range(0, Cb.shape[1], bsize):
-            Cb_q[i:(i+bsize), j:(j+bsize)] = np.round(np.multiply(Cb[i:(i+bsize), j:(j+bsize)], Q_c)).astype(np.uint8)
-    
-    Cr_q = np.zeros(Cr.shape)
+def Quantization_aux2(arr, bsize, Q):
+    arr_Q = np.zeros(arr.shape)
+    for i in range(0, arr.shape[0], bsize):
+        for j in range(0, arr.shape[1], bsize):
+            arr_Q[i:(i+bsize), j:(j+bsize)] = np.round(np.multiply(arr[i:(i+bsize), j:(j+bsize)], Q))
 
-    for i in range(0, Cr.shape[0], bsize):
-        for j in range(0, Cr.shape[1], bsize):
-            Cr_q[i:(i+bsize), j:(j+bsize)] = np.round(np.multiply(Cr[i:(i+bsize), j:(j+bsize)], Q_c)).astype(np.uint8)
+    return arr_Q.astype(np.int32)
+
+def Quantization_inv(Y_q, Cb_q, Cr_q, bsize, Qy, Qc):
+
+    Y = Quantization_aux2(Y_q, bsize, Qy)
+    Cb = Quantization_aux2(Cb_q, bsize, Qc)
+    Cr =  Quantization_aux2(Cr_q, bsize, Qc)
+
+    return Y, Cb, Cr
+
+
+def Quantization_quality(Q, qf):
+    sf = (100 - qf)/ 50 if qf >= 50 else qf/50
+    if sf == 0:
+        return Q
+
+    Qs = np.round(np.multiply(Q,sf))
+    Qs[Qs > 255] = 255
+    Qs[Qs < 1] = 1
+    Qs = Qs.astype(np.uint8)
+
+    return Qs
     
-    return Y_q, Cb_q, Cr_q
-    
-            
-def encoder(img_name, FCb, FCr):
+def encoder(img_name, FCb, FCr, Qy, Qc):
     R, G, B, image = read_image(img_name)
-    show_image(image, 'Original')
-    show_image(R,"Canal R", colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
-    show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
-    show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
+    #show_image(image, 'Original')
+    #show_image(R,"Canal R", colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
+    #show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
+    #show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
     
     #PADDING
     image_pad = padding(image)
-    show_image(image_pad, "Padded")
+    #show_image(image_pad, "Padded")
     
     #RGB to YCbCr
-    Y, Cb, Cr, T = RGB_to_YCbCr(image_pad[:, :, 0], image_pad[:, :, 1],image_pad[:, :, 2])
+    Y, Cb, Cr = RGB_to_YCbCr(image_pad[:, :, 0], image_pad[:, :, 1],image_pad[:, :, 2])
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
-    show_image(Y, "Canal Y", cmgray)
-    show_image(Cb, "Canal Cb", cmgray)
-    show_image(Cr, "Canal Cr", cmgray)
+    #show_image(Y, "Canal Y", cmgray)
+    #show_image(Cb, "Canal Cb", cmgray)
+    #show_image(Cr, "Canal Cr", cmgray)
 
     #DOWNSAMPLING
     Cb_d, Cr_d = downsampling(Cb, Cr, FCb, FCr) #obter Y_d como diz no enunciado(?)
@@ -408,38 +264,42 @@ def encoder(img_name, FCb, FCr):
     show_image(np.log(abs(Y_dct) + 0.0001), "Canal Y DCT", cmap=cmgray)
     show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT", cmap=cmgray)
     show_image(np.log(abs(Cr_dct) + 0.0001), "Canal Cr DCT", cmap=cmgray)
-
+    
+    print(Y_dct[0:8, 0:8].astype(int))
     #QUANTIZATION
-    Y_qt, Cb_qt, Cr_qt = Quantization(Y_dct, Cb_dct, Cr_dct, 8)
-    show_image(Y_qt, "Canal Y quantizado", cmgray)
-    show_image(Cb_qt, "Canal Cb quantizado", cmgray)
-    show_image(Cr_qt, "Canal Cr quantizado", cmgray)
-
+    Y_qt, Cb_qt, Cr_qt = Quantization(Y_dct, Cb_dct, Cr_dct, 8, Qy, Qc)
+    show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y quantizado", cmap=cmgray)
+    show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb quantizado", cmap=cmgray)
+    show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr quantizado", cmap=cmgray)
+    #print(Y_qt[0:8, 0:8])
+    print("-------------------")
+    #print(type(Y_qt[0][0]))
     return Y_qt, Cb_qt, Cr_qt, image.shape
 
 
-def decoder(Y, Cb, Cr, shape, FCb, FCr):
+def decoder(Y_qt, Cb_qt, Cr_qt, shape, FCb, FCr, Qy, Qc):
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
-    Y, Cb, Cr = Quantization_inv(Y, Cb, Cr, 8)
-    show_image(Y, "Canal Y desquantizado", cmgray)
-    show_image(Cb, "Canal Cb desquantizado", cmgray)
-    show_image(Cr, "Canal Cr desquantizado", cmgray)
-    
-    Y = IDCT_blocks(Y, 8)
-    Cb = IDCT_blocks(Cb, 8)
-    Cr = IDCT_blocks(Cr, 8)
-    show_image(Y, "Canal Y IDCT", cmgray)
-    show_image(Cb, "Canal Cb IDCT", cmgray)
-    show_image(Cr, "Canal Cr IDCT", cmgray)
-    
-    Cb, Cr = upsampling(Cb, Cr, FCb, FCr)
 
+    Y_dq, Cb_dq, Cr_dq = Quantization_inv(Y_qt, Cb_qt, Cr_qt, 8, Qy, Qc)
+    print(Y_dq[0:8, 0:8])
+    show_image(np.log(abs(Y_dq) + 0.0001), "Canal Y desquantizado", cmgray)
+    show_image(np.log(abs(Cb_dq) + 0.0001), "Canal Cb desquantizado", cmgray)
+    show_image(np.log(abs(Cr_dq) + 0.0001), "Canal Cr desquantizado", cmgray)
+
+    Y_idct = IDCT_blocks(Y_dq, 8)
+    Cb_idct = IDCT_blocks(Cb_dq, 8)
+    Cr_idct = IDCT_blocks(Cr_dq, 8)
+    show_image(Y_idct, "Canal Y IDCT", cmgray)
+    show_image(Cb_idct, "Canal Cb IDCT", cmgray)
+    show_image(Cr_idct, "Canal Cr IDCT", cmgray)
+
+    Cb_up, Cr_up = upsampling(Cb_idct, Cr_idct, FCb, FCr)
+
+    show_image(Y_idct, "Canal Y upsampled", cmgray)
+    show_image(Cb_up, "Canal Cb upsampled", cmgray)
+    show_image(Cr_up, "Canal Cr upsampled", cmgray)
     
-    show_image(Y, "Canal Y upsampled", cmgray)
-    show_image(Cb, "Canal Cb upsampled", cmgray)
-    show_image(Cr, "Canal Cr upsampled", cmgray)
-    
-    image_rgb = YCbCr_to_RGB(Y, Cb, Cr)
+    image_rgb = YCbCr_to_RGB(Y_idct, Cb_up, Cr_up)
     show_image(image_rgb, "RGB after upsampling YCbCr")
 
     image_pad_inv = padding_inv(shape[0], shape[1], image_rgb)
@@ -447,13 +307,15 @@ def decoder(Y, Cb, Cr, shape, FCb, FCr):
     show_image(padding_inv(shape[0], shape[1], image_pad_inv), "inverse padding")
     return image_pad_inv
 
-
+# %%
 def main():
+    img = ["peppers", "barn_mountains", "logo"]
     Fator_Cb = 2
     Fator_Cr = 2
-    img = ["peppers", "barn_mountains", "logo"]
-    Y, Cb, Cr, shape = encoder(f"imagens/{img[1]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr)
-    decoder(Y, Cb, Cr, shape, FCb=Fator_Cb, FCr=Fator_Cr)
+    Qy = Quantization_quality(Q_y, 75)
+    Qc = Quantization_quality(Q_c, 75)
+    Y, Cb, Cr, shape = encoder(f"imagens/{img[1]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
+    decoder(Y, Cb, Cr, shape, FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
 
 
 if __name__ == "__main__":
