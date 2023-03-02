@@ -218,7 +218,10 @@ def Quantization_inv(Y_q, Cb_q, Cr_q, bsize, Qy, Qc):
 
 
 def Quantization_quality(Q, qf):
-    sf = (100 - qf)/ 50 if qf >= 50 else qf/50
+    # sf = (100 - qf)/ 50 if qf >= 50 else qf/50
+    if qf>=50:
+        sf = (100 - qf)/ 50
+    else: sf=50/qf
     if sf == 0:
         return Q
 
