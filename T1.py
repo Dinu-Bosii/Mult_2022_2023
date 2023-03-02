@@ -231,7 +231,44 @@ def Quantization_quality(Q, qf):
     Qs = Qs.astype(np.uint8)
 
     return Qs
+
+def Codificao_DPCM(Y_qt):
+    last = 0
+    aux = 0
+    """
+    for i in range(0, 64, 8):
+        print(Y_qt[0][i])
+    """
+    for i in range(0, Y_qt.shape[0], 8):
+        for j in range(0, Y_qt.shape[1], 8):
+            aux = Y_qt[i][j]
+            Y_qt[i][j] = Y_qt[i][j] - last
+            last = aux
+    """print("................................")
+    for i in range(0, 64, 8):
+        print(Y_qt[0][i])
+    """
+    return Y_qt
+
+def Codificao_DPCM_inv(Y_qt):
+    last = 0
+    aux = 0
     
+    for i in range(0, 64, 8):
+        print(Y_qt[0][i])
+    
+    for i in range(0, Y_qt.shape[0], 8):
+        for j in range(0, Y_qt.shape[1], 8):
+            #aux = Y_qt[i][j]
+            Y_qt[i][j] = Y_qt[i][j] + last
+            last = Y_qt[i][j]
+    print("................................")
+    for i in range(0, 64, 8):
+        print(Y_qt[0][i])
+    
+    return Y_qt
+
+
 def encoder(img_name, FCb, FCr, Qy, Qc):
     R, G, B, image = read_image(img_name)
     #show_image(image, 'Original')
@@ -277,10 +314,20 @@ def encoder(img_name, FCb, FCr, Qy, Qc):
     #print(Y_qt[0:8, 0:8])
     print("-------------------")
     #print(type(Y_qt[0][0]))
-    return Y_qt, Cb_qt, Cr_qt, image.shape
+    Y_dpcm = Codificao_DPCM(Y_qt)
+    Cb_dpcm = Codificao_DPCM(Cb_qt)
+    Cr_dpcm = Codificao_DPCM(Cr_qt)
+    show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y dpcm", cmap=cmgray)
+    show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb dpcm", cmap=cmgray)
+    show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr dpcm", cmap=cmgray)
+    
+    return Y_dpcm, Cb_dpcm, Cr_dpcm, image.shape
 
 
-def decoder(Y_qt, Cb_qt, Cr_qt, shape, FCb, FCr, Qy, Qc):
+def decoder(Y_dpcm, Cb_dpcm, Cr_dpcm, shape, FCb, FCr, Qy, Qc):
+    Y_qt = Codificao_DPCM_inv(Y_dpcm)
+    Cb_qt = Codificao_DPCM_inv(Cb_dpcm) 
+    Cr_qt = Codificao_DPCM_inv(Cr_dpcm)
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
 
     Y_dq, Cb_dq, Cr_dq = Quantization_inv(Y_qt, Cb_qt, Cr_qt, 8, Qy, Qc)
