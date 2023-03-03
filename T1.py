@@ -192,7 +192,8 @@ def Quantization(Y, Cb, Cr, bsize, Qy, Qc):
     
     return Y_q, Cb_q, Cr_q
 
-def Quantization_aux(arr, bsize, Q):
+
+def Quantization_aux(arr, bsize, Q): # Quantização por blocos de tamanho bsize
     arr_Q = np.zeros(arr.shape)
     for i in range(0, arr.shape[0], bsize):
         for j in range(0, arr.shape[1], bsize):
@@ -200,7 +201,8 @@ def Quantization_aux(arr, bsize, Q):
             
     return arr_Q.astype(np.int32)
 
-def Quantization_aux2(arr, bsize, Q):
+
+def Quantization_aux2(arr, bsize, Q): #Quantização inversa
     arr_Q = np.zeros(arr.shape)
     for i in range(0, arr.shape[0], bsize):
         for j in range(0, arr.shape[1], bsize):
@@ -218,10 +220,10 @@ def Quantization_inv(Y_q, Cb_q, Cr_q, bsize, Qy, Qc):
 
 
 def Quantization_quality(Q, qf):
-    # sf = (100 - qf)/ 50 if qf >= 50 else qf/50
-    if qf>=50:
+    # sf = (100 - qf)/ 50 if qf >= 50 else 50/qf
+    if qf >= 50:
         sf = (100 - qf)/ 50
-    else: sf=50/qf
+    else: sf = 50/qf
     if sf == 0:
         return Q
 
@@ -235,61 +237,48 @@ def Quantization_quality(Q, qf):
 def Codificao_DPCM(Y_qt):
     last = 0
     aux = 0
-    """
-    for i in range(0, 64, 8):
-        print(Y_qt[0][i])
-    """
+
     for i in range(0, Y_qt.shape[0], 8):
         for j in range(0, Y_qt.shape[1], 8):
             aux = Y_qt[i][j]
             Y_qt[i][j] = Y_qt[i][j] - last
             last = aux
-    """print("................................")
-    for i in range(0, 64, 8):
-        print(Y_qt[0][i])
-    """
+
     return Y_qt
 
 def Codificao_DPCM_inv(Y_qt):
     last = 0
-    aux = 0
-    
-    for i in range(0, 64, 8):
-        print(Y_qt[0][i])
     
     for i in range(0, Y_qt.shape[0], 8):
         for j in range(0, Y_qt.shape[1], 8):
-            #aux = Y_qt[i][j]
             Y_qt[i][j] = Y_qt[i][j] + last
             last = Y_qt[i][j]
-    print("................................")
-    for i in range(0, 64, 8):
-        print(Y_qt[0][i])
+
     
     return Y_qt
 
 
 def encoder(img_name, FCb, FCr, Qy, Qc):
     R, G, B, image = read_image(img_name)
-    #show_image(image, 'Original')
-    #show_image(R,"Canal R", colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
-    #show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
-    #show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
+    show_image(image, 'Original')
+    show_image(R,"Canal R", colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
+    show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
+    show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
     
     #PADDING
     image_pad = padding(image)
-    #show_image(image_pad, "Padded")
+    show_image(image_pad, "Padded")
     
     #RGB to YCbCr
     Y, Cb, Cr = RGB_to_YCbCr(image_pad[:, :, 0], image_pad[:, :, 1],image_pad[:, :, 2])
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
-    #show_image(Y, "Canal Y", cmgray)
-    #show_image(Cb, "Canal Cb", cmgray)
-    #show_image(Cr, "Canal Cr", cmgray)
+    show_image(Y, "Canal Y", cmgray)
+    show_image(Cb, "Canal Cb", cmgray)
+    show_image(Cr, "Canal Cr", cmgray)
 
     #DOWNSAMPLING
     Cb_d, Cr_d = downsampling(Cb, Cr, FCb, FCr) #obter Y_d como diz no enunciado(?)
-    #show_image(Y_d, "Canal Y downsampled", cmgray)
+    show_image(Y_d, "Canal Y downsampled", cmgray)
     show_image(Cb_d, "Canal Cb downsampled", cmgray)
     show_image(Cr_d, "Canal Cr downsampled", cmgray)
 
@@ -304,22 +293,22 @@ def encoder(img_name, FCb, FCr, Qy, Qc):
     show_image(np.log(abs(Y_dct) + 0.0001), "Canal Y DCT", cmap=cmgray)
     show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT", cmap=cmgray)
     show_image(np.log(abs(Cr_dct) + 0.0001), "Canal Cr DCT", cmap=cmgray)
-    
-    print(Y_dct[0:8, 0:8].astype(int))
+
     #QUANTIZATION
     Y_qt, Cb_qt, Cr_qt = Quantization(Y_dct, Cb_dct, Cr_dct, 8, Qy, Qc)
     show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y quantizado", cmap=cmgray)
     show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb quantizado", cmap=cmgray)
     show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr quantizado", cmap=cmgray)
-    #print(Y_qt[0:8, 0:8])
-    print("-------------------")
-    #print(type(Y_qt[0][0]))
+
+    #CODIFICAÇÃO DPCM
     Y_dpcm = Codificao_DPCM(Y_qt)
     Cb_dpcm = Codificao_DPCM(Cb_qt)
     Cr_dpcm = Codificao_DPCM(Cr_qt)
+    
     show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y dpcm", cmap=cmgray)
     show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb dpcm", cmap=cmgray)
     show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr dpcm", cmap=cmgray)
+    
     
     return Y_dpcm, Cb_dpcm, Cr_dpcm, image.shape
 
@@ -329,7 +318,10 @@ def decoder(Y_dpcm, Cb_dpcm, Cr_dpcm, shape, FCb, FCr, Qy, Qc):
     Cb_qt = Codificao_DPCM_inv(Cb_dpcm) 
     Cr_qt = Codificao_DPCM_inv(Cr_dpcm)
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
-
+    show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y dpcm inv", cmgray)
+    show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb dpcm inv", cmgray)
+    show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr dpcm inv", cmgray)
+    
     Y_dq, Cb_dq, Cr_dq = Quantization_inv(Y_qt, Cb_qt, Cr_qt, 8, Qy, Qc)
     print(Y_dq[0:8, 0:8])
     show_image(np.log(abs(Y_dq) + 0.0001), "Canal Y desquantizado", cmgray)
@@ -362,8 +354,9 @@ def main():
     img = ["peppers", "barn_mountains", "logo"]
     Fator_Cb = 2
     Fator_Cr = 2
-    Qy = Quantization_quality(Q_y, 75)
-    Qc = Quantization_quality(Q_c, 75)
+    Quality = 75
+    Qy = Quantization_quality(Q_y, Quality)
+    Qc = Quantization_quality(Q_c, Quality)
     Y, Cb, Cr, shape = encoder(f"imagens/{img[1]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
     decoder(Y, Cb, Cr, shape, FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
 
@@ -386,3 +379,9 @@ if __name__ == "__main__":
 # uma das tabelas com a apreciação subjetiva da qualidade(?)
 
 # %%
+
+"""            
+    print("................................")
+    for i in range(0, 64, 8):
+        print(Y_qt[0][i])
+"""
