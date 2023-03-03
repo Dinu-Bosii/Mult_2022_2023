@@ -29,6 +29,7 @@ Q_c=np.array([[17,18,24,47,99,99,99,99],
                 [99,99,99,99,99,99,99,99],
                 [99,99,99,99,99,99,99,99],
                 [99,99,99,99,99,99,99,99]])
+interpolacao = cv2.INTER_LINEAR
 
 #3.2
 def colormap(name, colors, num):
@@ -139,8 +140,8 @@ def downsampling(Cb, Cr, FCb, FCr):
         Cb_fx = FCb / 4
         Cr_fx = FCr / 4
         C_fy = 1.0
-    Cb_down = cv2.resize(Cb, (0, 0), fx = Cb_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
-    Cr_down = cv2.resize(Cr, (0, 0), fx = Cr_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
+    Cb_down = cv2.resize(Cb, (0, 0), fx = Cb_fx, fy = C_fy, interpolation=interpolacao)
+    Cr_down = cv2.resize(Cr, (0, 0), fx = Cr_fx, fy = C_fy, interpolation=interpolacao)
     #print("cb downsampled shape = ", Cb_down.shape)
     return Cb_down, Cr_down
 
@@ -153,8 +154,8 @@ def upsampling(Cb, Cr, FCb, FCr):
         Cr_fx = 4 / FCr
         C_fy = 1.0
         
-    Cb_up = cv2.resize(Cb, (0, 0), fx = Cb_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
-    Cr_up = cv2.resize(Cr, (0, 0), fx = Cr_fx, fy = C_fy, interpolation=cv2.INTER_LINEAR)
+    Cb_up = cv2.resize(Cb, (0, 0), fx = Cb_fx, fy = C_fy, interpolation=interpolacao)
+    Cr_up = cv2.resize(Cr, (0, 0), fx = Cr_fx, fy = C_fy, interpolation=interpolacao)
     
     return Cb_up, Cr_up
 
@@ -208,7 +209,7 @@ def Quantization_aux2(arr, bsize, Q): #Quantização inversa
         for j in range(0, arr.shape[1], bsize):
             arr_Q[i:(i+bsize), j:(j+bsize)] = np.round(np.multiply(arr[i:(i+bsize), j:(j+bsize)], Q))
 
-    return arr_Q.astype(np.int32)
+    return arr_Q.astype(np.float32)
 
 def Quantization_inv(Y_q, Cb_q, Cr_q, bsize, Qy, Qc):
 
@@ -278,7 +279,7 @@ def encoder(img_name, FCb, FCr, Qy, Qc):
 
     #DOWNSAMPLING
     Cb_d, Cr_d = downsampling(Cb, Cr, FCb, FCr) #obter Y_d como diz no enunciado(?)
-    show_image(Y_d, "Canal Y downsampled", cmgray)
+    show_image(Y, "Canal Y downsampled", cmgray)
     show_image(Cb_d, "Canal Cb downsampled", cmgray)
     show_image(Cr_d, "Canal Cr downsampled", cmgray)
 
@@ -317,20 +318,23 @@ def decoder(Y_dpcm, Cb_dpcm, Cr_dpcm, shape, FCb, FCr, Qy, Qc):
     Y_qt = Codificao_DPCM_inv(Y_dpcm)
     Cb_qt = Codificao_DPCM_inv(Cb_dpcm) 
     Cr_qt = Codificao_DPCM_inv(Cr_dpcm)
+    
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
+    
     show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y dpcm inv", cmgray)
     show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb dpcm inv", cmgray)
     show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr dpcm inv", cmgray)
     
     Y_dq, Cb_dq, Cr_dq = Quantization_inv(Y_qt, Cb_qt, Cr_qt, 8, Qy, Qc)
-    print(Y_dq[0:8, 0:8])
-    show_image(np.log(abs(Y_dq) + 0.0001), "Canal Y desquantizado", cmgray)
-    show_image(np.log(abs(Cb_dq) + 0.0001), "Canal Cb desquantizado", cmgray)
-    show_image(np.log(abs(Cr_dq) + 0.0001), "Canal Cr desquantizado", cmgray)
+    
+    show_image(np.log(abs(Y_dq) + 0.0001), "Canal Y quantização inv", cmgray)
+    show_image(np.log(abs(Cb_dq) + 0.0001), "Canal Cb quantização inv", cmgray)
+    show_image(np.log(abs(Cr_dq) + 0.0001), "Canal Cr quantização inv", cmgray)
 
     Y_idct = IDCT_blocks(Y_dq, 8)
     Cb_idct = IDCT_blocks(Cb_dq, 8)
     Cr_idct = IDCT_blocks(Cr_dq, 8)
+    
     show_image(Y_idct, "Canal Y IDCT", cmgray)
     show_image(Cb_idct, "Canal Cb IDCT", cmgray)
     show_image(Cr_idct, "Canal Cr IDCT", cmgray)
@@ -347,6 +351,7 @@ def decoder(Y_dpcm, Cb_dpcm, Cr_dpcm, shape, FCb, FCr, Qy, Qc):
     image_pad_inv = padding_inv(shape[0], shape[1], image_rgb)
     
     show_image(padding_inv(shape[0], shape[1], image_pad_inv), "inverse padding")
+    
     return image_pad_inv
 
 # %%
@@ -365,6 +370,10 @@ if __name__ == "__main__":
     main()
 
 
+#MSE = np.sum((imOriginal - imgRec)**2)/(nl*nc)
+#E = abs(Y- Yrec)
+
+
 # fazer 2 tabelas
 #ratio de compressão
 #_________________________________
@@ -379,9 +388,3 @@ if __name__ == "__main__":
 # uma das tabelas com a apreciação subjetiva da qualidade(?)
 
 # %%
-
-"""            
-    print("................................")
-    for i in range(0, 64, 8):
-        print(Y_qt[0][i])
-"""
