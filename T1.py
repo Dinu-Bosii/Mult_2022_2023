@@ -4,7 +4,6 @@ import matplotlib.colors as clr
 import numpy as np
 import cv2
 from scipy.fftpack import dct, idct
-from numpy import r_
 
 # variáveis globais
 fig_num = 0
@@ -247,6 +246,7 @@ def Codificao_DPCM(Y_qt):
 
     return Y_qt
 
+
 def Codificao_DPCM_inv(Y_qt):
     last = 0
     
@@ -262,26 +262,26 @@ def Codificao_DPCM_inv(Y_qt):
 def encoder(img_name, FCb, FCr, Qy, Qc):
     R, G, B, image = read_image(img_name)
     show_image(image, 'Original')
-    show_image(R,"Canal R", colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
-    show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
-    show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
+    #show_image(R,"Canal R", colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
+    #show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
+    #show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
     
     #PADDING
     image_pad = padding(image)
-    show_image(image_pad, "Padded")
+    #show_image(image_pad, "Padded")
     
     #RGB to YCbCr
     Y, Cb, Cr = RGB_to_YCbCr(image_pad[:, :, 0], image_pad[:, :, 1],image_pad[:, :, 2])
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
-    show_image(Y, "Canal Y", cmgray)
-    show_image(Cb, "Canal Cb", cmgray)
-    show_image(Cr, "Canal Cr", cmgray)
+    #show_image(Y, "Canal Y", cmgray)
+    #show_image(Cb, "Canal Cb", cmgray)
+    #show_image(Cr, "Canal Cr", cmgray)
 
     #DOWNSAMPLING
     Cb_d, Cr_d = downsampling(Cb, Cr, FCb, FCr) #obter Y_d como diz no enunciado(?)
-    show_image(Y, "Canal Y downsampled", cmgray)
-    show_image(Cb_d, "Canal Cb downsampled", cmgray)
-    show_image(Cr_d, "Canal Cr downsampled", cmgray)
+    #show_image(Y, "Canal Y downsampled", cmgray)
+    #show_image(Cb_d, "Canal Cb downsampled", cmgray)
+    #show_image(Cr_d, "Canal Cr downsampled", cmgray)
 
     # DCT CONVERSION
     #Y_dct = DCT(Y)
@@ -291,27 +291,27 @@ def encoder(img_name, FCb, FCr, Qy, Qc):
     Cb_dct = DCT_blocks(Cb_d, 8)
     Cr_dct = DCT_blocks(Cr_d, 8)
     
-    show_image(np.log(abs(Y_dct) + 0.0001), "Canal Y DCT", cmap=cmgray)
-    show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT", cmap=cmgray)
-    show_image(np.log(abs(Cr_dct) + 0.0001), "Canal Cr DCT", cmap=cmgray)
+    #show_image(np.log(abs(Y_dct) + 0.0001), "Canal Y DCT", cmap=cmgray)
+    #show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT", cmap=cmgray)
+    #show_image(np.log(abs(Cr_dct) + 0.0001), "Canal Cr DCT", cmap=cmgray)
 
     #QUANTIZATION
     Y_qt, Cb_qt, Cr_qt = Quantization(Y_dct, Cb_dct, Cr_dct, 8, Qy, Qc)
-    show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y quantizado", cmap=cmgray)
-    show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb quantizado", cmap=cmgray)
-    show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr quantizado", cmap=cmgray)
+    #show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y quantizado", cmap=cmgray)
+    #show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb quantizado", cmap=cmgray)
+    #show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr quantizado", cmap=cmgray)
 
     #CODIFICAÇÃO DPCM
     Y_dpcm = Codificao_DPCM(Y_qt)
     Cb_dpcm = Codificao_DPCM(Cb_qt)
     Cr_dpcm = Codificao_DPCM(Cr_qt)
     
-    show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y dpcm", cmap=cmgray)
-    show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb dpcm", cmap=cmgray)
-    show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr dpcm", cmap=cmgray)
+    #show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y dpcm", cmap=cmgray)
+    #show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb dpcm", cmap=cmgray)
+    #show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr dpcm", cmap=cmgray)
     
     
-    return Y_dpcm, Cb_dpcm, Cr_dpcm, image.shape
+    return Y_dpcm, Cb_dpcm, Cr_dpcm, image.shape, Y
 
 
 def decoder(Y_dpcm, Cb_dpcm, Cr_dpcm, shape, FCb, FCr, Qy, Qc):
@@ -321,38 +321,38 @@ def decoder(Y_dpcm, Cb_dpcm, Cr_dpcm, shape, FCb, FCr, Qy, Qc):
     
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
     
-    show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y dpcm inv", cmgray)
-    show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb dpcm inv", cmgray)
-    show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr dpcm inv", cmgray)
+    #show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y dpcm inv", cmgray)
+    #show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb dpcm inv", cmgray)
+    #show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr dpcm inv", cmgray)
     
     Y_dq, Cb_dq, Cr_dq = Quantization_inv(Y_qt, Cb_qt, Cr_qt, 8, Qy, Qc)
     
-    show_image(np.log(abs(Y_dq) + 0.0001), "Canal Y quantização inv", cmgray)
-    show_image(np.log(abs(Cb_dq) + 0.0001), "Canal Cb quantização inv", cmgray)
-    show_image(np.log(abs(Cr_dq) + 0.0001), "Canal Cr quantização inv", cmgray)
+    #show_image(np.log(abs(Y_dq) + 0.0001), "Canal Y quantização inv", cmgray)
+    #show_image(np.log(abs(Cb_dq) + 0.0001), "Canal Cb quantização inv", cmgray)
+    #show_image(np.log(abs(Cr_dq) + 0.0001), "Canal Cr quantização inv", cmgray)
 
     Y_idct = IDCT_blocks(Y_dq, 8)
     Cb_idct = IDCT_blocks(Cb_dq, 8)
     Cr_idct = IDCT_blocks(Cr_dq, 8)
     
-    show_image(Y_idct, "Canal Y IDCT", cmgray)
-    show_image(Cb_idct, "Canal Cb IDCT", cmgray)
-    show_image(Cr_idct, "Canal Cr IDCT", cmgray)
+    #show_image(Y_idct, "Canal Y IDCT", cmgray)
+    #show_image(Cb_idct, "Canal Cb IDCT", cmgray)
+    #show_image(Cr_idct, "Canal Cr IDCT", cmgray)
 
     Cb_up, Cr_up = upsampling(Cb_idct, Cr_idct, FCb, FCr)
 
-    show_image(Y_idct, "Canal Y upsampled", cmgray)
-    show_image(Cb_up, "Canal Cb upsampled", cmgray)
-    show_image(Cr_up, "Canal Cr upsampled", cmgray)
+    #show_image(Y_idct, "Canal Y upsampled", cmgray)
+    #show_image(Cb_up, "Canal Cb upsampled", cmgray)
+    #show_image(Cr_up, "Canal Cr upsampled", cmgray)
     
     image_rgb = YCbCr_to_RGB(Y_idct, Cb_up, Cr_up)
-    show_image(image_rgb, "RGB after upsampling YCbCr")
+    #show_image(image_rgb, "RGB after upsampling YCbCr")
 
     image_pad_inv = padding_inv(shape[0], shape[1], image_rgb)
     
-    show_image(padding_inv(shape[0], shape[1], image_pad_inv), "inverse padding")
+    show_image(padding_inv(shape[0], shape[1], image_pad_inv), "imagem reconstruida")
     
-    return image_pad_inv
+    return image_pad_inv, Y_idct
 
 # %%
 def main():
@@ -362,16 +362,34 @@ def main():
     Quality = 75
     Qy = Quantization_quality(Q_y, Quality)
     Qc = Quantization_quality(Q_c, Quality)
-    Y, Cb, Cr, shape = encoder(f"imagens/{img[1]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
-    decoder(Y, Cb, Cr, shape, FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
+    Y_enc, Cb_enc, Cr_enc, shape, Y = encoder(f"imagens/{img[1]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
+    imgRec, Yrec = decoder(Y_enc, Cb_enc, Cr_enc, shape, FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
+    
+    
+    E = abs(Y - Yrec)
+    show_image(img=E, title="diferença", cmap='gray')
+    
+    imOriginal = plt.imread(f"imagens/{img[1]}.bmp")
+    MSE = np.sum(np.square(imOriginal - imgRec))/(shape[0]*shape[1])
+    print("MSE = ", MSE)
+    print( "RMSE = ", np.sqrt(MSE))
+    
+    P = np.sum(np.square(imOriginal))/(shape[0]*shape[1])
+    SNR = 10*np.log10(np.divide(P,MSE))
+    print("SNR = ", SNR)
+    
+    PSNR = 10*np.log10(np.square(np.max(imOriginal))/MSE)
+    print("PSNR = ", PSNR)
 
+    
 
 if __name__ == "__main__":
     main()
 
 
-#MSE = np.sum((imOriginal - imgRec)**2)/(nl*nc)
-#E = abs(Y- Yrec)
+
+
+
 
 
 # fazer 2 tabelas
