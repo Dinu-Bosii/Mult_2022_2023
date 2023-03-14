@@ -370,6 +370,8 @@ def main():
     show_image(img=E, title="diferença", cmap='gray')
     
     imOriginal = plt.imread(f"imagens/{img[1]}.bmp")
+    imOriginal=imOriginal.astype(np.float64)
+    
     MSE = np.sum(np.square(imOriginal - imgRec))/(shape[0]*shape[1])
     print("MSE = ", MSE)
     print( "RMSE = ", np.sqrt(MSE))
