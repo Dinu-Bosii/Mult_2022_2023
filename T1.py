@@ -378,7 +378,13 @@ def main():
     E = abs(Y - Yrec)
     #show_image(img=E, title="diferença", cmap='gray')
     
+<<<<<<< HEAD
     imOriginal = plt.imread(f"imagens/{img[1]}.bmp").astype(np.float64)
+=======
+    imOriginal = plt.imread(f"imagens/{img[1]}.bmp")
+    imOriginal=imOriginal.astype(np.float64)
+    
+>>>>>>> 0a9a036a23eabb5702a81b89d524aebbf795a4bb
     MSE = np.sum(np.square(imOriginal - imgRec))/(shape[0]*shape[1])
     print("MSE = ", MSE)
     print( "RMSE = ", np.sqrt(MSE))
