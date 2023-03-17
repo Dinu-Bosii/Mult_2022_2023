@@ -225,7 +225,8 @@ def Quantization_quality(Q, qf):
         sf = (100 - qf)/ 50
     else: sf = 50/qf
     if sf == 0:
-        return Q
+        return np.ones((8, 8))
+
 
     Qs = np.round(np.multiply(Q,sf))
     Qs[Qs > 255] = 255
@@ -261,15 +262,15 @@ def Codificao_DPCM_inv(Y_qt):
 
 def encoder(img_name, FCb, FCr, Qy, Qc):
     R, G, B, image = read_image(img_name)
-    show_image(image, 'Original')
+    #show_image(image, 'Original')
     #show_image(R,"Canal R", colormap('red', [(0, 0, 0), (1, 0, 0)], 256))
     #show_image(G,"Canal G", colormap('green', [(0, 0, 0), (0, 1, 0)], 256))
     #show_image(B,"Canal B", colormap('blue', [(0, 0, 0), (0, 0, 1)], 256))
-    
+
     #PADDING
     image_pad = padding(image)
     #show_image(image_pad, "Padded")
-    
+
     #RGB to YCbCr
     Y, Cb, Cr = RGB_to_YCbCr(image_pad[:, :, 0], image_pad[:, :, 1],image_pad[:, :, 2])
     cmgray = colormap('gray', [(0, 0, 0), (1, 1, 1)], 256)
@@ -290,27 +291,35 @@ def encoder(img_name, FCb, FCr, Qy, Qc):
     Y_dct = DCT_blocks(Y, 8)
     Cb_dct = DCT_blocks(Cb_d, 8)
     Cr_dct = DCT_blocks(Cr_d, 8)
-    
-    #show_image(np.log(abs(Y_dct) + 0.0001), "Canal Y DCT", cmap=cmgray)
-    #show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT", cmap=cmgray)
-    #show_image(np.log(abs(Cr_dct) + 0.0001), "Canal Cr DCT", cmap=cmgray)
 
+    show_image(np.log(abs(Y_dct) + 0.0001), "Canal Y DCT", cmap=cmgray)
+    show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT", cmap=cmgray)
+    show_image(np.log(abs(Cr_dct) + 0.0001), "Canal Cr DCT", cmap=cmgray)
+    
+    for i in range(8):
+        for j in range(8):
+            print(f'{round(Cb_dct[i][j], 1)}, ', end = '')
+        print()
+    #print(Cb_dct[:8][:8].astype(np.int32))
+
+    
     #QUANTIZATION
     Y_qt, Cb_qt, Cr_qt = Quantization(Y_dct, Cb_dct, Cr_dct, 8, Qy, Qc)
-    #show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y quantizado", cmap=cmgray)
-    #show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb quantizado", cmap=cmgray)
-    #show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr quantizado", cmap=cmgray)
+
+    show_image(np.log(abs(Y_qt) + 0.0001), "Canal Cb quantizado", cmap=cmgray)
+    show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb quantizado", cmap=cmgray)
+    show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr quantizado", cmap=cmgray)
 
     #CODIFICAÇÃO DPCM
     Y_dpcm = Codificao_DPCM(Y_qt)
     Cb_dpcm = Codificao_DPCM(Cb_qt)
     Cr_dpcm = Codificao_DPCM(Cr_qt)
-    
-    #show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y dpcm", cmap=cmgray)
-    #show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb dpcm", cmap=cmgray)
-    #show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr dpcm", cmap=cmgray)
-    
-    
+
+    show_image(np.log(abs(Y_qt) + 0.0001), "Canal Y dpcm", cmap=cmgray)
+    show_image(np.log(abs(Cb_qt) + 0.0001), "Canal Cb dpcm", cmap=cmgray)
+    show_image(np.log(abs(Cr_qt) + 0.0001), "Canal Cr dpcm", cmap=cmgray)
+
+
     return Y_dpcm, Cb_dpcm, Cr_dpcm, image.shape, Y
 
 
@@ -350,7 +359,7 @@ def decoder(Y_dpcm, Cb_dpcm, Cr_dpcm, shape, FCb, FCr, Qy, Qc):
 
     image_pad_inv = padding_inv(shape[0], shape[1], image_rgb)
     
-    show_image(padding_inv(shape[0], shape[1], image_pad_inv), "imagem reconstruida")
+    #show_image(padding_inv(shape[0], shape[1], image_pad_inv), "imagem reconstruida")
     
     return image_pad_inv, Y_idct
 
@@ -359,7 +368,7 @@ def main():
     img = ["peppers", "barn_mountains", "logo"]
     Fator_Cb = 2
     Fator_Cr = 2
-    Quality = 75
+    Quality = 100
     Qy = Quantization_quality(Q_y, Quality)
     Qc = Quantization_quality(Q_c, Quality)
     Y_enc, Cb_enc, Cr_enc, shape, Y = encoder(f"imagens/{img[1]}.bmp", FCb=Fator_Cb, FCr=Fator_Cr, Qy=Qy, Qc=Qc)
@@ -367,9 +376,9 @@ def main():
     
     
     E = abs(Y - Yrec)
-    show_image(img=E, title="diferença", cmap='gray')
+    #show_image(img=E, title="diferença", cmap='gray')
     
-    imOriginal = plt.imread(f"imagens/{img[1]}.bmp")
+    imOriginal = plt.imread(f"imagens/{img[1]}.bmp").astype(np.float64)
     MSE = np.sum(np.square(imOriginal - imgRec))/(shape[0]*shape[1])
     print("MSE = ", MSE)
     print( "RMSE = ", np.sqrt(MSE))
