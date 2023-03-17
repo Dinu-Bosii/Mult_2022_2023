@@ -192,8 +192,8 @@ def Quantization(Y, Cb, Cr, bsize, Qy, Qc):
     
     return Y_q, Cb_q, Cr_q
 
-
-def Quantization_aux(arr, bsize, Q): # Quantização por blocos de tamanho bsize
+ # Quantização por blocos de tamanho bsize
+def Quantization_aux(arr, bsize, Q):
     arr_Q = np.zeros(arr.shape)
     for i in range(0, arr.shape[0], bsize):
         for j in range(0, arr.shape[1], bsize):
@@ -220,12 +220,11 @@ def Quantization_inv(Y_q, Cb_q, Cr_q, bsize, Qy, Qc):
 
 
 def Quantization_quality(Q, qf):
-    # sf = (100 - qf)/ 50 if qf >= 50 else 50/qf
     if qf >= 50:
         sf = (100 - qf)/ 50
     else: sf = 50/qf
     if sf == 0:
-        return np.ones((8, 8))
+        return np.ones((8, 8), dtype=np.uint8)
 
 
     Qs = np.round(np.multiply(Q,sf))
