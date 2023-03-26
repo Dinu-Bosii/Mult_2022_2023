@@ -123,8 +123,6 @@ def YCbCr_to_RGB_aux(arg0, Y, Cb, Cr):
 
 
 def downsampling(Cb, Cr, FCb, FCr):
-    #dsize = (width, height)
-    
     if FCr == 0:
         Cr_fx = Cb_fx = C_fy = FCb / 4
     else:
@@ -283,7 +281,7 @@ def encoder(R, G, B, image, FCb, FCr, Qy, Qc):
     Cr_dct = DCT_blocks(Cr_d, 8)
 
     show_image(np.log(abs(Y_dct) + 0.0001), "Canal Y DCT", cmap=cmgray)
-    show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT", cmap=cmgray)
+    show_image(np.log(abs(Cb_dct) + 0.0001), "Canal Cb DCT 8x8", cmap=cmgray)
     show_image(np.log(abs(Cr_dct) + 0.0001), "Canal Cr DCT", cmap=cmgray)
     
     #QUANTIZATION
